@@ -36,12 +36,12 @@ func (invite *PlayerInvitation) Send() bool {
 	response, err := client.Send(message)
 
 	if err != nil {
-		log.Println(err)
+		log.Printf("%s", err)
 		return false
 	} else {
-		fmt.Println(response.StatusCode)
-		fmt.Println(response.Body)
-		fmt.Println(response.Headers)
+		log.Printf("%d", response.StatusCode)
+		log.Printf("%s", response.Body)
+		log.Printf("%s", response.Headers)
 		return true
 	}
 }

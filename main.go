@@ -44,7 +44,6 @@ func main() {
 			err := json.Unmarshal([]byte(message.Body), &invite)
 			failOnError(err, "Failed to parse message body")
 			invite.Send()
-			log.Printf("Invite sent to %s", invite.Email)
 		}
 	}()
 
