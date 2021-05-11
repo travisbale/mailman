@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head></head>
+  <body style="background-color: #212121; color: white;">
+    <div style="padding: 16px">
+      <div style="max-width: 1024px; margin: auto; display: flex; align-items: center;">
+        <img alt="Icon" style="height: auto; width: 36px;" src="https://staging.manitobarydercup.com/img/manitoba-ryder-cup.webp" />
+        <h1 style="font-size: 22px; margin-left: 8px; white-space: nowrap; letter-spacing: 0.5px;">DGA Admissions Office</h1>
+      </div>
+      <div style="margin: auto; max-width: 1024px; font-size: 14px">
+        <p style="margin-top: 24px;">
+          Dear Mr. {{ .LastName }},
+        </p>
+        <p>
+          I am delighted to inform you that the Board of Governors of the Degenerate Golfers' Association has decided to
+          cordially invite you to participate in the DGA Tour. Please accept my personal congratulations for your
+          outstanding achievements.
+        </p>
+        <p>
+          Faced with many more talented and highly qualified applicants than it has room to admit, the Board of Governors
+          has taken great care to choose individuals who present extraordinary aptitude, both on and off the course. In
+          making each admission decision, the Board keeps in mind that the excellence of the Tour depends most of all on
+          the talent and promise of its collective membership. In voting to offer you admission, the Board has
+          demonstrated its firm belief that you can make important contributions to the success of the Tour and the
+          enjoyment of its members.
+        </p>
+        <p>
+          If you would like the ability to record scores for your matches, you may click the button below to finish
+          creating your account.
+        </p>
+        <div style="text-align: center; margin-top: 56px;">
+          <a type="button" href="{{ .Url }}"
+            style="padding: 16px; padding-left: 28px; padding-right: 28px; font-size: 16px; font-weight: 600;
+                    background-color: #4527a0; color: white; text-decoration: none; border-radius: 5px;"
+          >
+            Complete Registration
+          </a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
