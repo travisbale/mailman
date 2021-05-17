@@ -29,7 +29,8 @@ func main() {
 	failOnError(err, "Failed to open a channel")
 	defer channel.Close()
 
-	queue, err := channel.QueueDeclare("player_invitations", false, false, false, false, nil)
+	queueName := fmt.Sprintf("%s.player_invitations", os.Getenv("GOLANG_ENV"))
+	queue, err := channel.QueueDeclare(queueName, false, false, false, false, nil)
 	failOnError(err, "Failed to declare a queue")
 
 	messages, err := channel.Consume(queue.Name, "", true, false, false, false, nil)
