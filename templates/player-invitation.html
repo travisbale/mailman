@@ -1,22 +1,24 @@
 <!DOCTYPE html>
 <html>
   <head></head>
-  <body style="background-color: #212121; color: white;">
-    <div style="padding: 16px">
-      <div style="max-width: 1024px; margin: auto; display: flex; align-items: center;">
-        <img alt="Icon" style="height: auto; width: 36px;" src="https://staging.manitobarydercup.com/img/manitoba-ryder-cup.webp" />
-        <h1 style="font-size: 22px; margin-left: 8px; white-space: nowrap; letter-spacing: 0.5px;">DGA Admissions Office</h1>
+  <body style="background-color: #f4f4f4; color: #212121; font-family: Arial, Helvetica, sans-serif; font-size: 16px; line-height: 24px;">
+    <div style="max-width: 660px; margin: auto; background-color: white; border: 1px solid #cfd8dc; border-radius: 2px; overflow: hidden;">
+      <div style="background-color: #607d8b; color: white; border-radius: 2px 2px 0 0;">
+        <div style="padding: 20px 32px; margin: auto; display: flex; align-items: center;">
+          <img alt="Icon" style="height: auto; width: 48px;" src="https://staging.manitobarydercup.com/img/email-logo.webp" />
+          <h1 style="font-size: 28px; padding-top: 12px; margin-left: 24px; white-space: nowrap;">Invitation to Compete</h1>
+        </div>
       </div>
-      <div style="margin: auto; max-width: 1024px; font-size: 14px">
-        <p style="margin-top: 24px;">
+      <div style="padding: 32px; margin: auto;">
+        <p style="padding-bottom: 8px;">
           Dear Mr. {{ .LastName }},
         </p>
-        <p>
-          I am delighted to inform you that the Board of Governors of the Degenerate Golfers' Association has decided to
-          cordially invite you to participate in the DGA Tour. Please accept my personal congratulations for your
-          outstanding achievements.
+        <p style="padding-bottom: 8px;">
+          We are delighted to inform you that the Board of Governors of the Degenerate Golfers' Association has made the
+          decision to formally invite you to compete on the prestigious DGA Tour. Please accept our personal congratulations
+          for this outstanding achievement.
         </p>
-        <p>
+        <p style="padding-bottom: 8px;">
           Faced with many more talented and highly qualified applicants than it has room to admit, the Board of Governors
           has taken great care to choose individuals who present extraordinary aptitude, both on and off the course. In
           making each admission decision, the Board keeps in mind that the excellence of the Tour depends most of all on
@@ -24,16 +26,16 @@
           demonstrated its firm belief that you can make important contributions to the success of the Tour and the
           enjoyment of its members.
         </p>
-        <p>
-          If you would like the ability to record scores for your matches, you may click the button below to finish
-          creating your account.
+        <p style="font-weight: 600; color: #616161; padding: 28px 0 36px 0;">
+          To record scores for your matches, you must complete your registration by clicking the button below.
         </p>
-        <div style="text-align: center; margin-top: 56px;">
+        <div style="text-align: center;">
           <a type="button" href="{{ .Url }}"
-            style="padding: 16px; padding-left: 28px; padding-right: 28px; font-size: 16px; font-weight: 600;
-                    background-color: #4527a0; color: white; text-decoration: none; border-radius: 5px;"
+            style="padding: 16px 28px; font-weight: 600; display: inline-block;
+                    background-color: #4527a0; color: white; text-decoration: none; border-radius: 3.5px;
+                    box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;"
           >
-            Complete Registration
+            Create Password
           </a>
         </div>
       </div>
