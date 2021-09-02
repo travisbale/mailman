@@ -29,7 +29,7 @@ func main() {
 	failOnError(err, "Failed to open a channel")
 	defer channel.Close()
 
-	queueName := fmt.Sprintf("%s.player_invitations", os.Getenv("GOLANG_ENV"))
+	queueName := fmt.Sprintf("%s.player_invitations", os.Getenv("RABBITMQ_PREFIX"))
 	queue, err := channel.QueueDeclare(queueName, false, false, false, false, nil)
 	failOnError(err, "Failed to declare a queue")
 
