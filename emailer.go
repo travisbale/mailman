@@ -40,7 +40,7 @@ func (invite *PlayerInvitation) Send() bool {
 	}
 
 	from := mail.NewEmail("DGA Tour Commissioner", "no-reply@manitobarydercup.com")
-	subject := "Invitation to Compete"
+	subject := "The Manitoba Ryder Cup"
 	to := mail.NewEmail(fmt.Sprintf("%s %s", invite.FirstName, invite.LastName), recipientAddress)
 	plainContent := fmt.Sprintf("Click the following link to complete registration: %s", invite.Url)
 	message := mail.NewSingleEmail(from, subject, to, plainContent, htmlContent.String())
