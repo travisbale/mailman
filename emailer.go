@@ -39,7 +39,7 @@ func (invite *PlayerInvitation) Send() bool {
 		failOnError(err, "Failed to execute template")
 	}
 
-	from := mail.NewEmail("DGA Tour Commissioner", "no-reply@manitobarydercup.com")
+	from := mail.NewEmail("Tournament Commissioner", "no-reply@manitobarydercup.com")
 	subject := "The Manitoba Ryder Cup"
 	to := mail.NewEmail(fmt.Sprintf("%s %s", invite.FirstName, invite.LastName), recipientAddress)
 	plainContent := fmt.Sprintf("Click the following link to complete registration: %s", invite.Url)
