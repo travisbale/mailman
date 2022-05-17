@@ -5,6 +5,6 @@ WORKDIR /app
 COPY . .
 
 RUN go mod download
-RUN mkdir -p bin && go build -o bin/mailman
+RUN mkdir -p bin && go build -o bin/mailman cmd/mailman.go
 
 CMD ["./bin/mailman"]
