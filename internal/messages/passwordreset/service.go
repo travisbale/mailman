@@ -43,8 +43,8 @@ func (s *resetService) SendPasswordReset(data MessageData) error {
 	}
 
 	email := &email.Email{
-		Subject:      "Manitoba Ryder Cup password reset request",
-		Sender:       &mail.Address{Name: "Manitoba Ryder Cup", Address: "no-reply@manitobarydercup.com"},
+		Subject:      "Ryder Cup password reset request",
+		Sender:       &mail.Address{Name: "Ryder Cup Support", Address: "no-reply@manitobarydercup.com"},
 		Recipient:    &mail.Address{Name: "", Address: data.Email},
 		PlainContent: fmt.Sprintf("Click the following link to reset your password: %s", data.Url),
 		HtmlContent:  htmlContent.String(),

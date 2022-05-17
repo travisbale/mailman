@@ -48,7 +48,7 @@ func (s *inviteService) SendInvitation(data MessageData) error {
 
 	email := &email.Email{
 		Subject:      "Welcome to the Manitoba Ryder Cup!",
-		Sender:       &mail.Address{Name: "Tournament Commissioner", Address: "no-reply@manitobarydercup.com"},
+		Sender:       &mail.Address{Name: "Ryder Cup Commissioner", Address: "no-reply@manitobarydercup.com"},
 		Recipient:    &mail.Address{Name: fmt.Sprintf("%s %s", data.FirstName, data.LastName), Address: data.Email},
 		PlainContent: fmt.Sprintf("Click the following link to complete registration: %s", data.Url),
 		HtmlContent:  htmlContent.String(),
