@@ -35,7 +35,7 @@ func (e *emailer) Send(msg *email.Email) error {
 	if err != nil {
 		return fmt.Errorf("Send: %w", err)
 	} else {
-		log15.Debug("email sent", "status code", response.StatusCode, "body", response.Body)
+		log15.Debug(fmt.Sprintf("email sent to %s", recipientAddress), "status_code", response.StatusCode)
 	}
 
 	return nil
