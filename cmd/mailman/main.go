@@ -38,11 +38,17 @@ func main() {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			emailService := sendgrid.NewService()
-			inviteService := invite.NewService(emailService)
-			passwordResetService := passwordreset.NewService(emailService)
+			emailClient := sendgrid.NewClient()
+			inviteService := invite.NewService(emailClient)
+			passwordService := passwordreset.NewService(emailClient)
+			connection := rabbitmq.Open()
 
-			rabbitmq.Listen(inviteService, passwordResetService)
+			forever := make(chan bool)
+
+			connection.RecieveMessages("player_invitations", inviteService)
+			connection.RecieveMessages("password_resets", passwordService)
+
+			<-forever
 
 			return nil
 		},

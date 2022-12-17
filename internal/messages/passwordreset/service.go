@@ -2,6 +2,7 @@ package passwordreset
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/mail"
@@ -9,49 +10,54 @@ import (
 	"github.com/travisbale/mailman/internal/email"
 )
 
-type MessageData struct {
+type message struct {
 	Email string
 	Url   string
 }
 
-type resetService struct {
-	tmplate      *template.Template
-	emailService email.Service
+type service struct {
+	tmplate     *template.Template
+	emailClient EmailClient
 }
 
-type Service interface {
-	SendPasswordReset(details MessageData) error
+type EmailClient interface {
+	SendEmail(email *email.Email) error
 }
 
-func NewService(emailService email.Service) Service {
+func NewService(emailClient EmailClient) *service {
 	files := []string{"templates/base.html", "templates/reset-password.html"}
 	tmplate, err := template.ParseFiles(files...)
 	if err != nil {
 		panic(fmt.Sprintf("NewService: %s", err))
 	}
 
-	return &resetService{
-		tmplate:      tmplate,
-		emailService: emailService,
+	return &service{
+		tmplate:     tmplate,
+		emailClient: emailClient,
 	}
 }
 
-func (s *resetService) SendPasswordReset(data MessageData) error {
+func (s *service) SendMessage(data []byte) error {
+	var msg message
+	if err := json.Unmarshal(data, &msg); err != nil {
+		return fmt.Errorf("SendMessage: %w", err)
+	}
+
 	htmlContent := new(bytes.Buffer)
-	if err := s.tmplate.ExecuteTemplate(htmlContent, "base", data); err != nil {
-		return fmt.Errorf("SendPasswordReset: %w", err)
+	if err := s.tmplate.ExecuteTemplate(htmlContent, "base", msg); err != nil {
+		return fmt.Errorf("SendMessage: %w", err)
 	}
 
 	email := &email.Email{
 		Subject:      "Ryder Cup password reset request",
 		Sender:       &mail.Address{Name: "Ryder Cup Support", Address: "no-reply@manitobarydercup.com"},
-		Recipient:    &mail.Address{Name: "", Address: data.Email},
-		PlainContent: fmt.Sprintf("Click the following link to reset your password: %s", data.Url),
+		Recipient:    &mail.Address{Name: "", Address: msg.Email},
+		PlainContent: fmt.Sprintf("Click the following link to reset your password: %s", msg.Url),
 		HtmlContent:  htmlContent.String(),
 	}
 
-	if err := s.emailService.Send(email); err != nil {
-		return fmt.Errorf("SendPasswordReset: %w", err)
+	if err := s.emailClient.SendEmail(email); err != nil {
+		return fmt.Errorf("SendMessage: %w", err)
 	}
 
 	return nil

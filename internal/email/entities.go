@@ -9,7 +9,3 @@ type Email struct {
 	PlainContent string
 	HtmlContent  string
 }
-
-type Service interface {
-	Send(msg *Email) error
-}

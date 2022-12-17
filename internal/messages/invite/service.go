@@ -2,6 +2,7 @@ package invite
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/mail"
@@ -10,52 +11,57 @@ import (
 	"github.com/travisbale/mailman/internal/email"
 )
 
-type MessageData struct {
+type message struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Email     string `json:"email"`
 	Url       string `json:"url"`
 }
 
-type inviteService struct {
-	template     *template.Template
-	emailService email.Service
+type service struct {
+	template    *template.Template
+	emailClient EmailClient
 }
 
-type Service interface {
-	SendInvitation(details MessageData) error
+type EmailClient interface {
+	SendEmail(email *email.Email) error
 }
 
-func NewService(emailService email.Service) Service {
+func NewService(emailClient EmailClient) *service {
 	files := []string{"templates/base.html", "templates/player-invitation.html"}
 	template, err := template.ParseFiles(files...)
 	if err != nil {
 		panic(fmt.Sprintf("NewService: %s", err))
 	}
 
-	return &inviteService{
-		template:     template,
-		emailService: emailService,
+	return &service{
+		template:    template,
+		emailClient: emailClient,
 	}
 }
 
-func (s *inviteService) SendInvitation(data MessageData) error {
+func (s *service) SendMessage(data []byte) error {
+	var message message
+	if err := json.Unmarshal(data, &message); err != nil {
+		return fmt.Errorf("SendMessage: %w", err)
+	}
+
 	htmlContent := new(bytes.Buffer)
-	if err := s.template.ExecuteTemplate(htmlContent, "base", data); err != nil {
+	if err := s.template.ExecuteTemplate(htmlContent, "base", message); err != nil {
 		log15.Debug(s.template.DefinedTemplates())
-		return fmt.Errorf("SendInvitation: %w", err)
+		return fmt.Errorf("SendMessage: %w", err)
 	}
 
 	email := &email.Email{
 		Subject:      "Welcome to the Manitoba Ryder Cup!",
 		Sender:       &mail.Address{Name: "Ryder Cup Commissioner", Address: "no-reply@manitobarydercup.com"},
-		Recipient:    &mail.Address{Name: fmt.Sprintf("%s %s", data.FirstName, data.LastName), Address: data.Email},
-		PlainContent: fmt.Sprintf("Click the following link to complete registration: %s", data.Url),
+		Recipient:    &mail.Address{Name: fmt.Sprintf("%s %s", message.FirstName, message.LastName), Address: message.Email},
+		PlainContent: fmt.Sprintf("Click the following link to complete registration: %s", message.Url),
 		HtmlContent:  htmlContent.String(),
 	}
 
-	if err := s.emailService.Send(email); err != nil {
-		return fmt.Errorf("SendInvitation: %w", err)
+	if err := s.emailClient.SendEmail(email); err != nil {
+		return fmt.Errorf("SendMessage: %w", err)
 	}
 
 	return nil
