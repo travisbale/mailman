@@ -1,3 +1,3 @@
 # mailman
 
-Mailman in an email sending service written in Go
+Mailman is an email sending service written in Go
