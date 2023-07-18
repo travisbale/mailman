@@ -1,10 +1,9 @@
-FROM golang:1.16-alpine3.13
+FROM golang:1.20-alpine
 
 WORKDIR /app
 
 COPY . .
 
-RUN go mod download
-RUN mkdir -p bin && go build -o bin/mailman cmd/mailman.go
+RUN mkdir -p bin && go build -o bin/mailman cmd/mailman/main.go
 
 CMD ["./bin/mailman"]

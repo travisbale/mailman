@@ -8,7 +8,7 @@ import (
 	"github.com/travisbale/mailman/internal/messages/invite"
 	"github.com/travisbale/mailman/internal/messages/passwordreset"
 	"github.com/travisbale/mailman/internal/rabbitmq"
-	"github.com/urfave/cli"
+	cli "github.com/urfave/cli/v2"
 )
 
 func main() {
@@ -16,25 +16,27 @@ func main() {
 		Name:  "mailman",
 		Usage: "sends html emails",
 		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:   "username, u",
-				Usage:  "RabbitMQ username",
-				EnvVar: "RABBITMQ_DEFAULT_USER",
+			&cli.StringFlag{
+				Name:    "username",
+				Aliases: []string{"u"},
+				Usage:   "RabbitMQ username",
+				EnvVars:  []string{"RABBITMQ_DEFAULT_USER"},
 			},
-			cli.StringFlag{
-				Name:   "password, p",
-				Usage:  "RabbitMQ password",
-				EnvVar: "RABBITMQ_DEFAULT_PASS",
+			&cli.StringFlag{
+				Name:    "password",
+				Aliases: []string{"p"},
+				Usage:   "RabbitMQ password",
+				EnvVars:  []string{"RABBITMQ_DEFAULT_PASS"},
 			},
-			cli.StringFlag{
+			&cli.StringFlag{
 				Name:   "hostname",
 				Usage:  "Hostname of server running RabbitMQ",
-				EnvVar: "RABBITMQ_HOST",
+				EnvVars: []string{"RABBITMQ_HOST"},
 			},
-			cli.StringFlag{
+			&cli.StringFlag{
 				Name:   "port",
 				Usage:  "Port number RabbitMQ is running on",
-				EnvVar: "RABBITMQ_PORT",
+				EnvVars: []string{"RABBITMQ_PORT"},
 			},
 		},
 		Action: func(c *cli.Context) error {

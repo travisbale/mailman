@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/inconshreveable/log15"
-	"github.com/sendgrid/sendgrid-go"
+	sendgrid "github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"github.com/travisbale/mailman/internal/email"
 )
