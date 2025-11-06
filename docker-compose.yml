@@ -1,9 +1,0 @@
-version: '3.7'
-
-services:
-  mailman:
-    build:
-      context: .
-    restart: always
-    container_name: mailman
-    env_file: ./env/mailman.env

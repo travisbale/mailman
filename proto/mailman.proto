@@ -1,0 +1,101 @@
+syntax = "proto3";
+
+package mailman.v1;
+
+option go_package = "github.com/travisbale/mailman/internal/pb;pb";
+
+import "google/protobuf/timestamp.proto";
+
+// Mailman service handles email sending for all internal services.
+service MailmanService {
+  // SendEmail enqueues a single email for delivery.
+  rpc SendEmail(SendEmailRequest) returns (SendEmailResponse);
+
+  // SendEmailBatch enqueues multiple emails in a single request.
+  rpc SendEmailBatch(SendEmailBatchRequest) returns (SendEmailBatchResponse);
+
+  // GetEmailStatus retrieves the current status of an email job.
+  rpc GetEmailStatus(GetEmailStatusRequest) returns (GetEmailStatusResponse);
+
+  // ListTemplates returns all available email templates.
+  rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse);
+}
+
+// SendEmailRequest represents a request to send an email.
+message SendEmailRequest {
+  // template_id identifies which email template to use (e.g., "welcome_email")
+  string template_id = 1;
+
+  // to is the recipient email address
+  string to = 2;
+
+  // variables contains data to populate the template
+  // Values can be strings, numbers, booleans, or nested objects
+  map<string, string> variables = 3;
+
+  // priority determines queue priority (0 = normal, higher = more urgent)
+  int32 priority = 4;
+
+  // scheduled_at allows scheduling emails for future delivery
+  google.protobuf.Timestamp scheduled_at = 5;
+
+  // metadata for tracking and debugging
+  map<string, string> metadata = 6;
+}
+
+// SendEmailResponse contains the job ID for tracking.
+message SendEmailResponse {
+}
+
+// SendEmailBatchRequest sends multiple emails in one request.
+message SendEmailBatchRequest {
+  repeated SendEmailRequest emails = 1;
+}
+
+// SendEmailBatchResponse returns job IDs for all emails.
+message SendEmailBatchResponse {
+  repeated SendEmailResponse results = 1;
+}
+
+// GetEmailStatusRequest retrieves status for a specific email job.
+message GetEmailStatusRequest {
+  string job_id = 1;
+}
+
+// GetEmailStatusResponse contains the current state of an email job.
+message GetEmailStatusResponse {
+  string job_id = 1;
+  EmailStatus status = 2;
+  int32 attempts = 3;
+  string last_error = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp sent_at = 6;
+}
+
+// ListTemplatesRequest retrieves available email templates.
+message ListTemplatesRequest {
+}
+
+// ListTemplatesResponse contains available email templates.
+message ListTemplatesResponse {
+  repeated EmailTemplate templates = 1;
+}
+
+// EmailTemplate represents an email template.
+message EmailTemplate {
+  // id is the unique template identifier (e.g., "welcome_email", "password_reset")
+  string id = 1;
+  string subject = 2;
+  repeated string required_variables = 3;
+  int32 version = 4;
+}
+
+// EmailStatus represents the current state of an email job.
+enum EmailStatus {
+  EMAIL_STATUS_UNSPECIFIED = 0;
+  EMAIL_STATUS_QUEUED = 1;
+  EMAIL_STATUS_SENDING = 2;
+  EMAIL_STATUS_SENT = 3;
+  EMAIL_STATUS_FAILED = 4;
+  EMAIL_STATUS_SCHEDULED = 5;
+}
