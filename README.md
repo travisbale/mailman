@@ -1,5 +1,10 @@
 # Mailman
 
+[![CI](https://github.com/travisbale/mailman/actions/workflows/ci.yml/badge.svg)](https://github.com/travisbale/mailman/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/travisbale/mailman)](https://goreportcard.com/report/github.com/travisbale/mailman)
+[![Go Version](https://img.shields.io/badge/go-1.25-blue.svg)](https://go.dev/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+
 A high-performance email service built with Go that provides a gRPC API for sending templated emails at scale. Mailman uses PostgreSQL-backed job queuing with River to ensure reliable email delivery with built-in retry logic.
 
 ## Features

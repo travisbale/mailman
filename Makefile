@@ -1,14 +1,17 @@
 .PHONY: help dev build proto clean test lint fmt
 
+# Version is derived from git tags
+VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
+
 # Build production binary
 build:
 	@echo "Building production binary..."
-	@CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o bin/mailman ./cmd/mailman
+	@CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w -X 'main.Version=$(VERSION)'" -o bin/mailman ./cmd/mailman
 
 # Build development binary (faster, includes debug symbols)
 dev:
 	@echo "Building development binary..."
-	@go build -o bin/mailman ./cmd/mailman
+	@go build -ldflags="-X 'main.Version=$(VERSION)'" -o bin/mailman ./cmd/mailman
 
 # Run tests
 test:

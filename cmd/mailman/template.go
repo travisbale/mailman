@@ -28,12 +28,6 @@ var templateAddCmd = &cli.Command{
 	Usage: "Add a new email template",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
-			Name:    "database-url",
-			Usage:   "PostgreSQL connection string",
-			EnvVars: []string{"DATABASE_URL"},
-			Value:   "postgres://postgres:secure_password@postgres:5432/mailman?sslmode=disable",
-		},
-		&cli.StringFlag{
 			Name:     "name",
 			Usage:    "Template name (e.g., welcome_email, password_reset)",
 			Required: true,
@@ -162,14 +156,6 @@ func buildTemplate(c *cli.Context) (*email.Template, error) {
 var templateListCmd = &cli.Command{
 	Name:  "list",
 	Usage: "List all email templates",
-	Flags: []cli.Flag{
-		&cli.StringFlag{
-			Name:    "database-url",
-			Usage:   "PostgreSQL connection string",
-			EnvVars: []string{"DATABASE_URL"},
-			Value:   "postgres://postgres:secure_password@postgres:5432/mailman?sslmode=disable",
-		},
-	},
 	Action: func(c *cli.Context) error {
 		ctx := context.Background()
 
