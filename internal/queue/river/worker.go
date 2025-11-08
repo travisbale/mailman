@@ -14,7 +14,6 @@ type emailService interface {
 }
 
 // SendEmailWorker processes email sending jobs from the River queue
-// Email content is pre-rendered before queueing, so worker just sends
 type SendEmailWorker struct {
 	river.WorkerDefaults[email.JobArgs]
 	emailService emailService
@@ -31,21 +30,20 @@ func NewSendEmailWorker(config WorkerConfig) *SendEmailWorker {
 	}
 }
 
-// Work processes a single email job
-// Content is already rendered, so just send the email
+// Work processes a single email job by passing an Email struct to the client
 func (w *SendEmailWorker) Work(ctx context.Context, job *river.Job[email.JobArgs]) error {
 	args := job.Args
 
-	// Send email via email client (content already rendered)
+	// Build email with template info
 	email := email.Email{
-		From:     w.fromAddress,
-		FromName: w.fromName,
-		To:       args.To,
-		Subject:  args.Subject,
-		HTMLBody: args.HTMLBody,
-		TextBody: args.TextBody,
+		To:           args.To,
+		From:         w.fromAddress,
+		FromName:     w.fromName,
+		TemplateName: args.TemplateName,
+		Variables:    args.Variables,
 	}
 
+	// Email client handles rendering and sending
 	if err := w.emailService.Send(ctx, email); err != nil {
 		return fmt.Errorf("failed to send email: %w", err)
 	}

@@ -20,11 +20,11 @@ type Server struct {
 }
 
 // NewServer creates a new gRPC server
-func NewServer(address string, templateService templateService, queueClient *river.JobQueue, templatesDB *postgres.TemplatesDB) *Server {
+func NewServer(address string, queueClient *river.JobQueue, templatesDB *postgres.TemplatesDB) *Server {
 	grpcServer := grpc.NewServer()
 	reflection.Register(grpcServer)
 
-	emailHandler := NewEmailHandler(templateService, queueClient)
+	emailHandler := NewEmailHandler(queueClient)
 
 	pb.RegisterMailmanServiceServer(grpcServer, emailHandler)
 

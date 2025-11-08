@@ -10,26 +10,18 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type templateService interface {
-	GetTemplate(ctx context.Context, name string) (*email.Template, error)
-	RenderTemplate(ctx context.Context, tmpl *email.Template, variables map[string]string) (*email.RenderedTemplate, error)
-	ValidateTemplate(tmpl *email.Template, variables map[string]string) error
-}
-
 type jobQueue interface {
 	EnqueueEmailJob(ctx context.Context, jobArgs *email.JobArgs) error
 }
 
 type EmailHandler struct {
 	pb.UnimplementedMailmanServiceServer
-	templateService templateService
-	jobQueue        jobQueue
+	jobQueue jobQueue
 }
 
-func NewEmailHandler(service templateService, queue jobQueue) *EmailHandler {
+func NewEmailHandler(queue jobQueue) *EmailHandler {
 	return &EmailHandler{
-		templateService: service,
-		jobQueue:        queue,
+		jobQueue: queue,
 	}
 }
 
@@ -40,31 +32,13 @@ func (h *EmailHandler) SendEmail(ctx context.Context, req *pb.SendEmailRequest) 
 		return nil, status.Errorf(codes.InvalidArgument, "invalid request: %v", err)
 	}
 
-	// Load template
-	tmpl, err := h.templateService.GetTemplate(ctx, req.TemplateId)
-	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "template not found: %s", req.TemplateId)
-	}
-
-	// Validate required variables
-	if err := h.templateService.ValidateTemplate(tmpl, req.Variables); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "template validation failed: %v", err)
-	}
-
-	// Render template (fail fast if there are rendering errors)
-	rendered, err := h.templateService.RenderTemplate(ctx, tmpl, req.Variables)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to render template: %v", err)
-	}
-
-	// Enqueue email job with pre-rendered content
+	// Enqueue email job with template name and variables (rendering happens in worker)
 	params := &email.JobArgs{
-		To:       req.To,
-		Subject:  rendered.Subject,
-		HTMLBody: rendered.HTMLBody,
-		TextBody: rendered.TextBody,
-		Priority: req.Priority,
-		Metadata: req.Metadata,
+		To:           req.To,
+		TemplateName: req.TemplateId,
+		Variables:    req.Variables,
+		Priority:     req.Priority,
+		Metadata:     req.Metadata,
 	}
 
 	if req.ScheduledAt != nil {
@@ -72,7 +46,7 @@ func (h *EmailHandler) SendEmail(ctx context.Context, req *pb.SendEmailRequest) 
 		params.ScheduledAt = &scheduledAt
 	}
 
-	err = h.jobQueue.EnqueueEmailJob(ctx, params)
+	err := h.jobQueue.EnqueueEmailJob(ctx, params)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to enqueue email: %v", err)
 	}

@@ -13,6 +13,8 @@ import (
 	"github.com/travisbale/mailman/internal/db/postgres"
 	"github.com/travisbale/mailman/internal/email"
 	"github.com/travisbale/mailman/internal/queue/river"
+	"github.com/travisbale/mailman/internal/renderers/html"
+	"github.com/travisbale/mailman/internal/renderers/json"
 )
 
 // Environment represents the application environment
@@ -45,12 +47,6 @@ type Config struct {
 
 type emailSender interface {
 	Send(ctx context.Context, email email.Email) error
-}
-
-type templateService interface {
-	GetTemplate(ctx context.Context, name string) (*email.Template, error)
-	RenderTemplate(ctx context.Context, tmpl *email.Template, variables map[string]string) (*email.RenderedTemplate, error)
-	ValidateTemplate(tmpl *email.Template, variables map[string]string) error
 }
 
 // Server represents the mailman application
@@ -90,20 +86,18 @@ func NewServer(ctx context.Context, config *Config) (*Server, error) {
 	// Create templates DB adapter
 	templatesDB := postgres.NewTemplatesDB(db)
 
-	// Determine email sender and template service based on environment
+	// Determine email client based on environment
+	// Email client owns the renderer and handles rendering before sending
 	var emailSender emailSender
-	var templateService templateService
 
 	if config.Environment == Development || config.SendGridAPIKey == "" {
-		fmt.Println("Using console email client (development mode)")
-		fmt.Println("Using stub template service (development mode)")
-		emailSender = console.New()
-		templateService = email.NewStubTemplateService()
+		fmt.Println("Using console email client with JSON renderer (development mode)")
+		renderer := json.New()
+		emailSender = console.New(renderer)
 	} else {
-		fmt.Println("Using SendGrid email client")
-		fmt.Println("Using database template service")
-		emailSender = sendgrid.New(config.SendGridAPIKey)
-		templateService = email.NewTemplateService(templatesDB)
+		fmt.Println("Using SendGrid email client with HTML renderer")
+		renderer := html.New(templatesDB)
+		emailSender = sendgrid.New(config.SendGridAPIKey, renderer)
 	}
 
 	// Initialize River queue client
@@ -118,7 +112,7 @@ func NewServer(ctx context.Context, config *Config) (*Server, error) {
 	}
 
 	// Create gRPC server
-	grpcServer := grpc.NewServer(config.GRPCAddress, templateService, queueClient, templatesDB)
+	grpcServer := grpc.NewServer(config.GRPCAddress, queueClient, templatesDB)
 
 	return &Server{
 		config:      config,

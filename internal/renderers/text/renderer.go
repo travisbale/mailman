@@ -1,0 +1,71 @@
+package text
+
+import (
+	"context"
+	"fmt"
+	"strings"
+
+	"github.com/travisbale/mailman/internal/email"
+)
+
+// Renderer renders simple text-based email templates with hardcoded templates.
+// This is useful for development and console output.
+type Renderer struct{}
+
+// New creates a new text renderer.
+func New() *Renderer {
+	return &Renderer{}
+}
+
+// Render renders an email template using hardcoded templates and simple variable substitution.
+func (r *Renderer) Render(ctx context.Context, templateName string, variables map[string]string) (*email.RenderedTemplate, error) {
+	// Get hardcoded template
+	tmpl, exists := templates[templateName]
+	if !exists {
+		return nil, fmt.Errorf("template not found: %s", templateName)
+	}
+
+	// Validate required variables
+	for _, required := range tmpl.requiredVariables {
+		if _, ok := variables[required]; !ok {
+			return nil, fmt.Errorf("missing required variable: %s", required)
+		}
+	}
+
+	// Simple string replacement for variables
+	subject := tmpl.subject
+	textBody := tmpl.body
+
+	for key, value := range variables {
+		placeholder := fmt.Sprintf("{{.%s}}", key)
+		subject = strings.ReplaceAll(subject, placeholder, value)
+		textBody = strings.ReplaceAll(textBody, placeholder, value)
+	}
+
+	return &email.RenderedTemplate{
+		Subject:  subject,
+		HTMLBody: textBody, // Same as text for simplicity
+		TextBody: textBody,
+	}, nil
+}
+
+// template represents a hardcoded text template
+type template struct {
+	subject           string
+	body              string
+	requiredVariables []string
+}
+
+// templates contains hardcoded templates for development
+var templates = map[string]template{
+	"email-verification": {
+		subject: "Verify your email address",
+		body:    "Email: {{.email}}\nVerification URL: {{.verification_url}}",
+		requiredVariables: []string{"email", "verification_url"},
+	},
+	"password-reset": {
+		subject: "Reset your password",
+		body:    "Email: {{.email}}\nReset URL: {{.reset_url}}",
+		requiredVariables: []string{"email", "reset_url"},
+	},
+}
