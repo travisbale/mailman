@@ -30,10 +30,6 @@ func (c *Client) Send(ctx context.Context, email email.Email) error {
 		fmt.Println(email.TextBody)
 		fmt.Println("----------------------------------------")
 	}
-	if email.HTMLBody != "" {
-		fmt.Println("HTML Body:")
-		fmt.Println(email.HTMLBody)
-	}
 	fmt.Println("========================================")
 	return nil
 }

@@ -31,6 +31,7 @@ func NewServer(address string, templateService templateService, queueClient *riv
 	return &Server{
 		emailHandler: emailHandler,
 		templatesDB:  templatesDB,
+		grpcServer:   grpcServer,
 		address:      address,
 	}
 }

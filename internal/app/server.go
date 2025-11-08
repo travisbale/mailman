@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/riverqueue/river/riverdriver/riverpgxv5"
+	"github.com/riverqueue/river/rivermigrate"
 	"github.com/travisbale/mailman/internal/api/grpc"
 	"github.com/travisbale/mailman/internal/clients/console"
 	"github.com/travisbale/mailman/internal/clients/sendgrid"
@@ -45,6 +47,12 @@ type emailSender interface {
 	Send(ctx context.Context, email email.Email) error
 }
 
+type templateService interface {
+	GetTemplate(ctx context.Context, name string) (*email.Template, error)
+	RenderTemplate(ctx context.Context, tmpl *email.Template, variables map[string]string) (*email.RenderedTemplate, error)
+	ValidateTemplate(tmpl *email.Template, variables map[string]string) error
+}
+
 // Server represents the mailman application
 type Server struct {
 	config      *Config
@@ -62,21 +70,41 @@ func NewServer(ctx context.Context, config *Config) (*Server, error) {
 		return nil, fmt.Errorf("failed to initialize database: %w", err)
 	}
 
+	// Run database migrations
+	if err := postgres.MigrateUp(config.DatabaseURL); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("failed to run database migrations: %w", err)
+	}
+
+	// Run River migrations
+	migrator, err:= rivermigrate.New(riverpgxv5.New(db.Pool()), nil)
+	if err != nil {
+		db.Close()
+		return nil, fmt.Errorf("failed to create river migrator: %w", err)
+	}
+	if _, err = migrator.Migrate(ctx, rivermigrate.DirectionUp, &rivermigrate.MigrateOpts{}); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("failed to run River migrations: %w", err)
+	}
+
 	// Create templates DB adapter
 	templatesDB := postgres.NewTemplatesDB(db)
 
-	// Determine email sender based on environment
+	// Determine email sender and template service based on environment
 	var emailSender emailSender
+	var templateService templateService
+
 	if config.Environment == Development || config.SendGridAPIKey == "" {
 		fmt.Println("Using console email client (development mode)")
+		fmt.Println("Using stub template service (development mode)")
 		emailSender = console.New()
+		templateService = email.NewStubTemplateService()
 	} else {
 		fmt.Println("Using SendGrid email client")
+		fmt.Println("Using database template service")
 		emailSender = sendgrid.New(config.SendGridAPIKey)
+		templateService = email.NewTemplateService(templatesDB)
 	}
-
-	// Create template renderer
-	templateService := email.NewTemplateService(templatesDB)
 
 	// Initialize River queue client
 	queueClient, err := river.NewJobQueue(db, river.WorkerConfig{
