@@ -25,16 +25,9 @@ var startCmd = &cli.Command{
 		EnvironmentFlag,
 	},
 	Action: func(c *cli.Context) error {
-		config := &app.Config{
-			DatabaseURL:    c.String("database-url"),
-			GRPCAddress:    c.String("grpc-address"),
-			SendGridAPIKey: c.String("sendgrid-api-key"),
-			FromAddress:    c.String("from-address"),
-			FromName:       c.String("from-name"),
-			Environment:    app.ParseEnvironment(c.String("environment")),
-		}
+		appConfig := config.ToAppConfig()
 
-		server, err := app.NewServer(c.Context, config)
+		server, err := app.NewServer(c.Context, appConfig)
 		if err != nil {
 			return fmt.Errorf("failed to create server: %w", err)
 		}
@@ -46,7 +39,7 @@ var startCmd = &cli.Command{
 
 		// Start server
 		group.Go(func() error {
-			fmt.Printf("Starting mailman service on %s\n", config.GRPCAddress)
+			fmt.Printf("Starting mailman service on %s\n", appConfig.GRPCAddress)
 			return server.Start()
 		})
 

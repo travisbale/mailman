@@ -64,7 +64,7 @@ var templateAddCmd = &cli.Command{
 		ctx := c.Context
 
 		// Connect to database
-		db, err := postgres.NewDB(ctx, c.String("database-url"))
+		db, err := postgres.NewDB(ctx, config.DatabaseURL)
 		if err != nil {
 			return fmt.Errorf("failed to connect to database: %w", err)
 		}
@@ -160,7 +160,7 @@ var templateListCmd = &cli.Command{
 		ctx := context.Background()
 
 		// Connect to database
-		db, err := postgres.NewDB(ctx, c.String("database-url"))
+		db, err := postgres.NewDB(ctx, config.DatabaseURL)
 		if err != nil {
 			return fmt.Errorf("failed to connect to database: %w", err)
 		}

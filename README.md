@@ -285,6 +285,11 @@ templates, err := client.ListTemplates(context.Background(), &pb.ListTemplatesRe
 # Start the server
 ./bin/mailman start
 
+# Run database migrations
+./bin/mailman migrate up
+./bin/mailman migrate down
+./bin/mailman migrate version
+
 # Manage templates
 ./bin/mailman template add --name <template_name> --subject <subject> ...
 ./bin/mailman template list
