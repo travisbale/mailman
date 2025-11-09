@@ -59,13 +59,13 @@ type template struct {
 // templates contains hardcoded templates for development
 var templates = map[string]template{
 	"email-verification": {
-		subject: "Verify your email address",
-		body:    "Email: {{.email}}\nVerification URL: {{.verification_url}}",
+		subject:           "Verify your email address",
+		body:              "Email: {{.email}}\nVerification URL: {{.verification_url}}",
 		requiredVariables: []string{"email", "verification_url"},
 	},
 	"password-reset": {
-		subject: "Reset your password",
-		body:    "Email: {{.email}}\nReset URL: {{.reset_url}}",
+		subject:           "Reset your password",
+		body:              "Email: {{.email}}\nReset URL: {{.reset_url}}",
 		requiredVariables: []string{"email", "reset_url"},
 	},
 }

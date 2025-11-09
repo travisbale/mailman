@@ -73,7 +73,7 @@ func NewServer(ctx context.Context, config *Config) (*Server, error) {
 	}
 
 	// Run River migrations
-	migrator, err:= rivermigrate.New(riverpgxv5.New(db.Pool()), nil)
+	migrator, err := rivermigrate.New(riverpgxv5.New(db.Pool()), nil)
 	if err != nil {
 		db.Close()
 		return nil, fmt.Errorf("failed to create river migrator: %w", err)

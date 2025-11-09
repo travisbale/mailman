@@ -74,4 +74,3 @@ func (s *TemplateService) validateNoCircularReference(ctx context.Context, newTe
 
 	return nil
 }
-
