@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/travisbale/mailman/internal/db/postgres/sqlc"
+	"github.com/travisbale/mailman/internal/db/postgres/internal/sqlc"
 	"github.com/travisbale/mailman/internal/email"
 )
 
