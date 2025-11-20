@@ -8,6 +8,27 @@ import (
 	"github.com/travisbale/mailman/internal/email"
 )
 
+// template represents a hardcoded text template
+type template struct {
+	subject           string
+	body              string
+	requiredVariables []string
+}
+
+// templates contains hardcoded templates for development
+var templates = map[string]template{
+	"email-verification": {
+		subject:           "Verify your email address",
+		body:              "Verification URL: {{.verification_url}}",
+		requiredVariables: []string{"verification_url"},
+	},
+	"password-reset": {
+		subject:           "Reset your password",
+		body:              "Reset URL: {{.reset_url}}",
+		requiredVariables: []string{"reset_url"},
+	},
+}
+
 // Renderer renders simple text-based email templates with hardcoded templates.
 // This is useful for development and console output.
 type Renderer struct{}
@@ -47,25 +68,4 @@ func (r *Renderer) Render(ctx context.Context, templateName string, variables ma
 		HTMLBody: textBody, // Same as text for simplicity
 		TextBody: textBody,
 	}, nil
-}
-
-// template represents a hardcoded text template
-type template struct {
-	subject           string
-	body              string
-	requiredVariables []string
-}
-
-// templates contains hardcoded templates for development
-var templates = map[string]template{
-	"email-verification": {
-		subject:           "Verify your email address",
-		body:              "Email: {{.email}}\nVerification URL: {{.verification_url}}",
-		requiredVariables: []string{"email", "verification_url"},
-	},
-	"password-reset": {
-		subject:           "Reset your password",
-		body:              "Email: {{.email}}\nReset URL: {{.reset_url}}",
-		requiredVariables: []string{"email", "reset_url"},
-	},
 }
