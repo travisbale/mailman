@@ -14,7 +14,6 @@ type DB struct {
 
 // NewDB creates a new database connection with the given connection string
 func NewDB(ctx context.Context, connString string) (*DB, error) {
-	// Create connection pool
 	pool, err := pgxpool.New(ctx, connString)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create connection pool: %w", err)

@@ -37,13 +37,11 @@ var startCmd = &cli.Command{
 
 		group, ctx := errgroup.WithContext(ctx)
 
-		// Start server
 		group.Go(func() error {
 			fmt.Printf("Starting mailman service on %s\n", appConfig.GRPCAddress)
 			return server.Start()
 		})
 
-		// Handle shutdown
 		group.Go(func() error {
 			<-ctx.Done()
 			fmt.Println("Shutting down gracefully...")

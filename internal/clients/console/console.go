@@ -16,10 +16,9 @@ type renderer interface {
 }
 
 // Client implements EmailClient by printing emails to stdout
-// This is useful for development and testing
 type Client struct {
 	renderer renderer
-	mu       sync.Mutex // Ensures atomic writes to stdout
+	mu       sync.Mutex // Prevents interleaved output from concurrent workers
 }
 
 // New creates a new console email client
@@ -31,13 +30,11 @@ func New(renderer renderer) *Client {
 
 // Send renders the template and prints the email to stdout instead of actually sending it
 func (c *Client) Send(ctx context.Context, email email.Email) error {
-	// Render the template
 	rendered, err := c.renderer.Render(ctx, email.TemplateName, email.Variables)
 	if err != nil {
 		return fmt.Errorf("failed to render template: %w", err)
 	}
 
-	// Build entire output atomically to prevent interleaved output from concurrent workers
 	var b strings.Builder
 	b.WriteString("========================================\n")
 	b.WriteString("📧 Email (Console Output)\n")
@@ -55,7 +52,6 @@ func (c *Client) Send(ctx context.Context, email email.Email) error {
 	}
 	b.WriteString("========================================\n")
 
-	// Lock to prevent interleaved writes from concurrent goroutines
 	c.mu.Lock()
 	fmt.Print(b.String())
 	c.mu.Unlock()

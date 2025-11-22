@@ -25,7 +25,6 @@ type Template struct {
 }
 
 // JobArgs holds the job arguments required to send an email
-// Contains template name and variables for rendering in the worker
 type JobArgs struct {
 	To           string
 	TemplateName string

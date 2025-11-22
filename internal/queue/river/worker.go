@@ -34,7 +34,6 @@ func NewSendEmailWorker(config WorkerConfig) *SendEmailWorker {
 func (w *SendEmailWorker) Work(ctx context.Context, job *river.Job[email.JobArgs]) error {
 	args := job.Args
 
-	// Build email with template info
 	email := email.Email{
 		To:           args.To,
 		From:         w.fromAddress,
@@ -43,7 +42,6 @@ func (w *SendEmailWorker) Work(ctx context.Context, job *river.Job[email.JobArgs
 		Variables:    args.Variables,
 	}
 
-	// Email client handles rendering and sending
 	if err := w.emailService.Send(ctx, email); err != nil {
 		return fmt.Errorf("failed to send email: %w", err)
 	}

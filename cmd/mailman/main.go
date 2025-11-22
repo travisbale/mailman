@@ -17,7 +17,6 @@ func main() {
 			DatabaseURLFlag,
 		},
 		Before: func(c *cli.Context) error {
-			// Set log level based on debug flag
 			var level slog.Level
 			if config.Debug {
 				level = slog.LevelDebug

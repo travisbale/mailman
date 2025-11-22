@@ -8,7 +8,6 @@ import (
 	"github.com/travisbale/mailman/internal/pb"
 	"github.com/travisbale/mailman/internal/queue/river"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 // Server implements the MailmanService gRPC service
@@ -22,7 +21,6 @@ type Server struct {
 // NewServer creates a new gRPC server
 func NewServer(address string, queueClient *river.JobQueue, templatesDB *postgres.TemplatesDB) *Server {
 	grpcServer := grpc.NewServer()
-	reflection.Register(grpcServer)
 
 	emailHandler := NewEmailHandler(queueClient)
 

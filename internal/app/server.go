@@ -27,6 +27,7 @@ const (
 
 // ParseEnvironment parses a string into an Environment type
 func ParseEnvironment(s string) Environment {
+	// Safe default prevents accidentally sending real emails during development
 	switch strings.ToLower(strings.TrimSpace(s)) {
 	case "production", "prod":
 		return Production
@@ -60,19 +61,16 @@ type Server struct {
 
 // NewServer creates and initializes a new application
 func NewServer(ctx context.Context, config *Config) (*Server, error) {
-	// Initialize database
 	db, err := postgres.NewDB(ctx, config.DatabaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize database: %w", err)
 	}
 
-	// Run database migrations
 	if err := postgres.MigrateUp(config.DatabaseURL); err != nil {
 		db.Close()
 		return nil, fmt.Errorf("failed to run database migrations: %w", err)
 	}
 
-	// Run River migrations
 	migrator, err := rivermigrate.New(riverpgxv5.New(db.Pool()), nil)
 	if err != nil {
 		db.Close()
@@ -83,11 +81,8 @@ func NewServer(ctx context.Context, config *Config) (*Server, error) {
 		return nil, fmt.Errorf("failed to run River migrations: %w", err)
 	}
 
-	// Create templates DB adapter
 	templatesDB := postgres.NewTemplatesDB(db)
 
-	// Determine email client based on environment
-	// Email client owns the renderer and handles rendering before sending
 	var emailSender emailSender
 
 	if config.Environment == Development || config.SendGridAPIKey == "" {
@@ -100,7 +95,6 @@ func NewServer(ctx context.Context, config *Config) (*Server, error) {
 		emailSender = sendgrid.New(config.SendGridAPIKey, renderer)
 	}
 
-	// Initialize River queue client
 	queueClient, err := river.NewJobQueue(db, river.WorkerConfig{
 		EmailService: emailSender,
 		FromAddress:  config.FromAddress,
@@ -111,7 +105,6 @@ func NewServer(ctx context.Context, config *Config) (*Server, error) {
 		return nil, fmt.Errorf("failed to initialize queue client: %w", err)
 	}
 
-	// Create gRPC server
 	grpcServer := grpc.NewServer(config.GRPCAddress, queueClient, templatesDB)
 
 	return &Server{
@@ -125,12 +118,10 @@ func NewServer(ctx context.Context, config *Config) (*Server, error) {
 
 // Start starts the application services
 func (s *Server) Start() error {
-	// Start River workers
 	if err := s.queueClient.Start(context.Background()); err != nil {
 		return fmt.Errorf("failed to start River workers: %w", err)
 	}
 
-	// Start gRPC server (blocks until error or shutdown)
 	if err := s.grpcServer.ListenAndServe(); err != nil {
 		return fmt.Errorf("failed to start gRPC server: %w", err)
 	}

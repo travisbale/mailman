@@ -69,7 +69,6 @@ func (r *TemplatesDB) Create(ctx context.Context, template *email.Template) (*em
 		return nil, fmt.Errorf("failed to create template: %w", err)
 	}
 
-	// Update the template with generated timestamps
 	template.CreatedAt = dbTemplate.CreatedAt
 	template.UpdatedAt = dbTemplate.UpdatedAt
 

@@ -30,13 +30,11 @@ func New(apiKey string, renderer renderer) *Client {
 
 // Send renders the template and sends an email via SendGrid
 func (c *Client) Send(ctx context.Context, email email.Email) error {
-	// Render the template
 	rendered, err := c.renderer.Render(ctx, email.TemplateName, email.Variables)
 	if err != nil {
 		return fmt.Errorf("failed to render template: %w", err)
 	}
 
-	// Send via SendGrid
 	fromEmail := mail.NewEmail(email.FromName, email.From)
 	toEmail := mail.NewEmail("", email.To)
 

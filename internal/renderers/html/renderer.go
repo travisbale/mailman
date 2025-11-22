@@ -28,30 +28,26 @@ func New(db TemplateDB) *Renderer {
 
 // Render renders an email template by fetching it from the database and executing it with the provided variables.
 func (r *Renderer) Render(ctx context.Context, templateName string, variables map[string]string) (*email.RenderedTemplate, error) {
-	// Load template from database
 	tmpl, err := r.db.GetTemplate(ctx, templateName)
 	if err != nil {
 		return nil, err
 	}
 
-	// Validate required variables
+	// Fail fast if client missing required variables (before queueing)
 	if err := validateTemplate(tmpl, variables); err != nil {
 		return nil, err
 	}
 
-	// Render subject
 	subject, err := renderString(tmpl.Subject, variables)
 	if err != nil {
 		return nil, fmt.Errorf("failed to render subject: %w", err)
 	}
 
-	// Render HTML body (with base template support)
 	htmlBody, err := r.renderHTMLWithBase(ctx, tmpl, variables)
 	if err != nil {
 		return nil, fmt.Errorf("failed to render HTML body: %w", err)
 	}
 
-	// Render text body if present (with base template support)
 	textBody := ""
 	if tmpl.TextBody != nil && *tmpl.TextBody != "" {
 		textBody, err = r.renderTextWithBase(ctx, tmpl, variables)
@@ -69,12 +65,10 @@ func (r *Renderer) Render(ctx context.Context, templateName string, variables ma
 
 // renderHTMLWithBase renders HTML body, loading base templates if needed
 func (r *Renderer) renderHTMLWithBase(ctx context.Context, tmpl *email.Template, variables map[string]string) (string, error) {
-	// If no base template, render directly
 	if tmpl.BaseTemplateName == nil || *tmpl.BaseTemplateName == "" {
 		return renderString(tmpl.HTMLBody, variables)
 	}
 
-	// Load the entire template chain
 	templates, err := r.loadTemplateChain(ctx, tmpl, func(t *email.Template) string {
 		return t.HTMLBody
 	})
@@ -82,7 +76,7 @@ func (r *Renderer) renderHTMLWithBase(ctx context.Context, tmpl *email.Template,
 		return "", err
 	}
 
-	// Parse all templates in the chain
+	// Parse in reverse order so base templates can reference child {{define}} blocks
 	tmplSet := template.New("base")
 	for i := len(templates) - 1; i >= 0; i-- {
 		_, err := tmplSet.Parse(templates[i])
@@ -91,7 +85,6 @@ func (r *Renderer) renderHTMLWithBase(ctx context.Context, tmpl *email.Template,
 		}
 	}
 
-	// Execute the base template (which will call nested {{template "content" .}} blocks)
 	var buf bytes.Buffer
 	if err := tmplSet.Execute(&buf, variables); err != nil {
 		return "", fmt.Errorf("failed to execute template: %w", err)
@@ -102,12 +95,10 @@ func (r *Renderer) renderHTMLWithBase(ctx context.Context, tmpl *email.Template,
 
 // renderTextWithBase renders text body, loading base templates if needed
 func (r *Renderer) renderTextWithBase(ctx context.Context, tmpl *email.Template, variables map[string]string) (string, error) {
-	// If no base template, render directly
 	if tmpl.BaseTemplateName == nil || *tmpl.BaseTemplateName == "" {
 		return renderString(*tmpl.TextBody, variables)
 	}
 
-	// Load the entire template chain
 	templates, err := r.loadTemplateChain(ctx, tmpl, func(t *email.Template) string {
 		if t.TextBody != nil {
 			return *t.TextBody
@@ -118,7 +109,6 @@ func (r *Renderer) renderTextWithBase(ctx context.Context, tmpl *email.Template,
 		return "", err
 	}
 
-	// Parse all templates in the chain
 	tmplSet := template.New("base")
 	for i := len(templates) - 1; i >= 0; i-- {
 		if templates[i] != "" {
@@ -129,7 +119,6 @@ func (r *Renderer) renderTextWithBase(ctx context.Context, tmpl *email.Template,
 		}
 	}
 
-	// Execute the base template
 	var buf bytes.Buffer
 	if err := tmplSet.Execute(&buf, variables); err != nil {
 		return "", fmt.Errorf("failed to execute template: %w", err)
@@ -143,7 +132,6 @@ func (r *Renderer) renderTextWithBase(ctx context.Context, tmpl *email.Template,
 func (r *Renderer) loadTemplateChain(ctx context.Context, tmpl *email.Template, extract func(*email.Template) string) ([]string, error) {
 	result := []string{extract(tmpl)}
 
-	// Recursively load base templates
 	current := tmpl
 	seen := make(map[string]bool)
 	seen[current.Name] = true
@@ -151,13 +139,12 @@ func (r *Renderer) loadTemplateChain(ctx context.Context, tmpl *email.Template, 
 	for current.BaseTemplateName != nil && *current.BaseTemplateName != "" {
 		baseName := *current.BaseTemplateName
 
-		// Detect circular references
+		// Safety net: circular references should be caught at creation time
 		if seen[baseName] {
 			return nil, fmt.Errorf("circular template reference detected: %s", baseName)
 		}
 		seen[baseName] = true
 
-		// Load base template
 		base, err := r.db.GetTemplate(ctx, baseName)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load base template %s: %w", baseName, err)

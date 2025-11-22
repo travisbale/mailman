@@ -63,18 +63,15 @@ var templateAddCmd = &cli.Command{
 	Action: func(c *cli.Context) error {
 		ctx := c.Context
 
-		// Connect to database
 		db, err := postgres.NewDB(ctx, config.DatabaseURL)
 		if err != nil {
 			return fmt.Errorf("failed to connect to database: %w", err)
 		}
 		defer db.Close()
 
-		// Create template service
 		templatesDB := postgres.NewTemplatesDB(db)
 		templateService := email.NewTemplateService(templatesDB)
 
-		// Validate and create template
 		template, err := buildTemplate(c)
 		if err != nil {
 			return fmt.Errorf("failed to build template: %w", err)
@@ -100,7 +97,6 @@ var templateAddCmd = &cli.Command{
 }
 
 func buildTemplate(c *cli.Context) (*email.Template, error) {
-	// Read HTML body from file
 	htmlFile := c.String("html-file")
 	htmlContent, err := os.ReadFile(htmlFile)
 	if err != nil {
@@ -108,7 +104,6 @@ func buildTemplate(c *cli.Context) (*email.Template, error) {
 	}
 	htmlBody := string(htmlContent)
 
-	// Read text body from file (optional)
 	var textBody string
 	textFile := c.String("text-file")
 	if textFile != "" {
@@ -119,7 +114,6 @@ func buildTemplate(c *cli.Context) (*email.Template, error) {
 		textBody = string(textContent)
 	}
 
-	// Parse required variables
 	var requiredVars []string
 	if varsStr := c.String("vars"); varsStr != "" {
 		for v := range strings.SplitSeq(varsStr, ",") {
@@ -130,7 +124,6 @@ func buildTemplate(c *cli.Context) (*email.Template, error) {
 		}
 	}
 
-	// Prepare optional fields
 	var textBodyPtr *string
 	if textBody != "" {
 		textBodyPtr = &textBody
@@ -159,18 +152,15 @@ var templateListCmd = &cli.Command{
 	Action: func(c *cli.Context) error {
 		ctx := context.Background()
 
-		// Connect to database
 		db, err := postgres.NewDB(ctx, config.DatabaseURL)
 		if err != nil {
 			return fmt.Errorf("failed to connect to database: %w", err)
 		}
 		defer db.Close()
 
-		// Create template service
 		templatesDB := postgres.NewTemplatesDB(db)
 		templateService := email.NewTemplateService(templatesDB)
 
-		// List templates
 		templates, err := templateService.ListTemplates(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to list templates: %w", err)

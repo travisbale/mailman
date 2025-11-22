@@ -6,24 +6,13 @@ import (
 
 // Config holds all configuration for the application
 type Config struct {
-	// Debug
-	Debug bool
-
-	// Database
-	DatabaseURL string
-
-	// Server address
-	GRPCAddress string
-
-	// SendGrid configuration
+	Debug          bool
+	DatabaseURL    string
+	GRPCAddress    string
 	SendGridAPIKey string
-
-	// Email sender configuration
-	FromAddress string
-	FromName    string
-
-	// Environment
-	Environment string
+	FromAddress    string
+	FromName       string
+	Environment    string
 }
 
 // config is the global configuration populated by CLI flags

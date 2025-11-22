@@ -2,7 +2,6 @@ package grpc
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/travisbale/mailman/internal/email"
 	"github.com/travisbale/mailman/internal/pb"
@@ -27,12 +26,10 @@ func NewEmailHandler(queue jobQueue) *EmailHandler {
 
 // SendEmail enqueues a single email for delivery
 func (h *EmailHandler) SendEmail(ctx context.Context, req *pb.SendEmailRequest) (*pb.SendEmailResponse, error) {
-	// Validate request
 	if err := h.validateSendEmailRequest(req); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid request: %v", err)
 	}
 
-	// Enqueue email job with template name and variables (rendering happens in worker)
 	params := &email.JobArgs{
 		To:           req.To,
 		TemplateName: req.TemplateId,
@@ -61,9 +58,6 @@ func (s *Server) SendEmailBatch(ctx context.Context, req *pb.SendEmailBatchReque
 	for _, emailReq := range req.Emails {
 		resp, err := s.emailHandler.SendEmail(ctx, emailReq)
 		if err != nil {
-			// For batch operations, we could either:
-			// 1. Fail the entire batch on first error (current behavior)
-			// 2. Continue and collect errors
 			return nil, err
 		}
 		results = append(results, resp)
@@ -81,7 +75,6 @@ func (s *Server) ListTemplates(ctx context.Context, req *pb.ListTemplatesRequest
 		return nil, status.Errorf(codes.Internal, "failed to list templates: %v", err)
 	}
 
-	// Convert domain templates to protobuf templates
 	pbTemplates := make([]*pb.EmailTemplate, 0, len(templates))
 	for _, t := range templates {
 		pbTemplates = append(pbTemplates, &pb.EmailTemplate{
@@ -95,16 +88,4 @@ func (s *Server) ListTemplates(ctx context.Context, req *pb.ListTemplatesRequest
 	return &pb.ListTemplatesResponse{
 		Templates: pbTemplates,
 	}, nil
-}
-
-// validateSendEmailRequest validates the send email request
-func (s *EmailHandler) validateSendEmailRequest(req *pb.SendEmailRequest) error {
-	if req.TemplateId == "" {
-		return fmt.Errorf("template_id is required")
-	}
-	if req.To == "" {
-		return fmt.Errorf("to is required")
-	}
-	// TODO: Add email format validation
-	return nil
 }

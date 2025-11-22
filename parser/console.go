@@ -15,7 +15,6 @@ type EmailLog struct {
 }
 
 // ParseConsoleLogs parses console output and returns structured email logs
-// This function knows the exact format produced by the console client
 func ParseConsoleLogs(logs string) ([]EmailLog, error) {
 	var emails []EmailLog
 	lines := strings.Split(logs, "\n")
@@ -27,7 +26,6 @@ func ParseConsoleLogs(logs string) ([]EmailLog, error) {
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
 
-		// Extract recipient from "To:" line
 		if recipientEmail, ok := strings.CutPrefix(trimmed, "To: "); ok {
 			currentRecipient = recipientEmail
 		}
@@ -52,7 +50,6 @@ func ParseConsoleLogs(logs string) ([]EmailLog, error) {
 			continue
 		}
 
-		// Accumulate JSON lines from text body
 		if inTextBody {
 			jsonLines = append(jsonLines, trimmed)
 		}
@@ -74,9 +71,8 @@ func parseEmailJSON(recipient string, jsonLines []string, emails *[]EmailLog) er
 		return fmt.Errorf("failed to unmarshal email JSON: %w", err)
 	}
 
-	// Add recipient from the "To:" line
 	log.To = recipient
-
 	*emails = append(*emails, log)
+
 	return nil
 }

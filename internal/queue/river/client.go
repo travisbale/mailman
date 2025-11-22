@@ -35,11 +35,10 @@ func NewJobQueue(db *postgres.DB, config WorkerConfig) (*JobQueue, error) {
 			river.QueueDefault: {MaxWorkers: 5},
 		},
 		Workers: workers,
-		// Job retention: keep completed jobs for 7 days
+		// Retain job records for debugging failed email deliveries
 		CompletedJobRetentionPeriod: 7 * 24 * time.Hour,
 	}
 
-	// Create River client
 	riverClient, err := river.NewClient(riverpgxv5.New(db.Pool()), riverConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create River client: %w", err)
@@ -53,11 +52,11 @@ func NewJobQueue(db *postgres.DB, config WorkerConfig) (*JobQueue, error) {
 // EnqueueEmailJob enqueues an email job to the queue
 func (c *JobQueue) EnqueueEmailJob(ctx context.Context, jobArgs *email.JobArgs) error {
 	insertOpts := &river.InsertOpts{
-		MaxAttempts: 4, // 1 initial + 3 retries
+		MaxAttempts: 4, // Retries handle transient SendGrid API failures
 		Priority:    0,
 		Queue:       river.QueueDefault,
 		UniqueOpts: river.UniqueOpts{
-			ByArgs: true, // Prevent duplicate processing
+			ByArgs: true, // Prevents sending duplicate emails if client retries request
 		},
 	}
 
