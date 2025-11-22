@@ -3,6 +3,9 @@ package console
 import (
 	"context"
 	"fmt"
+	"strings"
+	"sync"
+	"time"
 
 	"github.com/travisbale/mailman/internal/email"
 )
@@ -16,6 +19,7 @@ type renderer interface {
 // This is useful for development and testing
 type Client struct {
 	renderer renderer
+	mu       sync.Mutex // Ensures atomic writes to stdout
 }
 
 // New creates a new console email client
@@ -33,19 +37,28 @@ func (c *Client) Send(ctx context.Context, email email.Email) error {
 		return fmt.Errorf("failed to render template: %w", err)
 	}
 
-	// Print to console
-	fmt.Println("========================================")
-	fmt.Println("📧 Email (Console Output)")
-	fmt.Println("========================================")
-	fmt.Printf("From: %s <%s>\n", email.FromName, email.From)
-	fmt.Printf("To: %s\n", email.To)
-	fmt.Printf("Subject: %s\n", rendered.Subject)
-	fmt.Println("----------------------------------------")
+	// Build entire output atomically to prevent interleaved output from concurrent workers
+	var b strings.Builder
+	b.WriteString("========================================\n")
+	b.WriteString("📧 Email (Console Output)\n")
+	b.WriteString("========================================\n")
+	fmt.Fprintf(&b, "Sent: %s\n", time.Now().Format(time.RFC3339))
+	fmt.Fprintf(&b, "From: %s <%s>\n", email.FromName, email.From)
+	fmt.Fprintf(&b, "To: %s\n", email.To)
+	fmt.Fprintf(&b, "Subject: %s\n", rendered.Subject)
+	b.WriteString("----------------------------------------\n")
 	if rendered.TextBody != "" {
-		fmt.Println("Text Body:")
-		fmt.Println(rendered.TextBody)
-		fmt.Println("----------------------------------------")
+		b.WriteString("Text Body:\n")
+		b.WriteString(rendered.TextBody)
+		b.WriteString("\n")
+		b.WriteString("----------------------------------------\n")
 	}
-	fmt.Println("========================================")
+	b.WriteString("========================================\n")
+
+	// Lock to prevent interleaved writes from concurrent goroutines
+	c.mu.Lock()
+	fmt.Print(b.String())
+	c.mu.Unlock()
+
 	return nil
 }
