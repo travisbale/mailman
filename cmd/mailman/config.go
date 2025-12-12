@@ -8,6 +8,7 @@ import (
 type Config struct {
 	Debug          bool
 	DatabaseURL    string
+	HTTPAddress    string
 	GRPCAddress    string
 	SendGridAPIKey string
 	FromAddress    string
@@ -22,6 +23,7 @@ var config = &Config{}
 func (c *Config) ToAppConfig() *app.Config {
 	return &app.Config{
 		DatabaseURL:    c.DatabaseURL,
+		HTTPAddress:    c.HTTPAddress,
 		GRPCAddress:    c.GRPCAddress,
 		SendGridAPIKey: c.SendGridAPIKey,
 		FromAddress:    c.FromAddress,

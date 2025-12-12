@@ -23,6 +23,15 @@ var (
 		Destination: &config.DatabaseURL,
 	}
 
+	// HTTPAddressFlag defines the HTTP server bind address
+	HTTPAddressFlag = &cli.StringFlag{
+		Name:        "http-address",
+		Usage:       "HTTP server bind address",
+		EnvVars:     []string{"HTTP_ADDRESS"},
+		Value:       ":8080",
+		Destination: &config.HTTPAddress,
+	}
+
 	// GRPCAddressFlag defines the gRPC server bind address
 	GRPCAddressFlag = &cli.StringFlag{
 		Name:        "grpc-address",

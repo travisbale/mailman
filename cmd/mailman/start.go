@@ -16,8 +16,9 @@ import (
 // startCmd returns the CLI command for starting the mailman server
 var startCmd = &cli.Command{
 	Name:  "start",
-	Usage: "Start the mailman gRPC server",
+	Usage: "Start the mailman HTTP and gRPC servers",
 	Flags: []cli.Flag{
+		HTTPAddressFlag,
 		GRPCAddressFlag,
 		SendGridAPIKeyFlag,
 		FromAddressFlag,
@@ -38,8 +39,8 @@ var startCmd = &cli.Command{
 		group, ctx := errgroup.WithContext(ctx)
 
 		group.Go(func() error {
-			fmt.Printf("Starting mailman service on %s\n", appConfig.GRPCAddress)
-			return server.Start()
+			fmt.Printf("Starting mailman service (HTTP: %s, gRPC: %s)\n", appConfig.HTTPAddress, appConfig.GRPCAddress)
+			return server.Start(ctx)
 		})
 
 		group.Go(func() error {

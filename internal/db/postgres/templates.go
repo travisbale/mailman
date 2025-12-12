@@ -21,58 +21,69 @@ func NewTemplatesDB(db *DB) *TemplatesDB {
 
 // GetTemplate retrieves a template by its name
 func (r *TemplatesDB) GetTemplate(ctx context.Context, name string) (*email.Template, error) {
-	queries := sqlc.New(r.db.Pool())
+	var template *email.Template
 
-	dbTemplate, err := queries.GetTemplate(ctx, name)
-	if err != nil {
-		if err == pgx.ErrNoRows {
-			return nil, fmt.Errorf("template not found: %s", name)
+	err := r.db.WithTransaction(ctx, func(q *sqlc.Queries) error {
+		dbTemplate, err := q.GetTemplate(ctx, name)
+		if err != nil {
+			if err == pgx.ErrNoRows {
+				return fmt.Errorf("template not found: %s", name)
+			}
+			return fmt.Errorf("failed to get template: %w", err)
 		}
-		return nil, fmt.Errorf("failed to get template: %w", err)
-	}
 
-	return convertTemplateToDomain(dbTemplate), nil
+		template = convertTemplateToDomain(dbTemplate)
+		return nil
+	})
+
+	return template, err
 }
 
 // List retrieves all email templates, optionally filtered by name
 func (r *TemplatesDB) List(ctx context.Context) ([]*email.Template, error) {
-	queries := sqlc.New(r.db.Pool())
+	var templates []*email.Template
 
-	dbTemplates, err := queries.ListTemplates(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list templates: %w", err)
-	}
+	err := r.db.WithTransaction(ctx, func(q *sqlc.Queries) error {
+		dbTemplates, err := q.ListTemplates(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to list templates: %w", err)
+		}
 
-	templates := make([]*email.Template, len(dbTemplates))
-	for i := range dbTemplates {
-		templates[i] = convertTemplateToDomain(dbTemplates[i])
-	}
+		templates = make([]*email.Template, len(dbTemplates))
+		for i := range dbTemplates {
+			templates[i] = convertTemplateToDomain(dbTemplates[i])
+		}
 
-	return templates, nil
+		return nil
+	})
+
+	return templates, err
 }
 
 // Create inserts a new email template
 func (r *TemplatesDB) Create(ctx context.Context, template *email.Template) (*email.Template, error) {
-	queries := sqlc.New(r.db.Pool())
+	err := r.db.WithTransaction(ctx, func(q *sqlc.Queries) error {
+		dbTemplate, err := q.CreateTemplate(ctx, sqlc.CreateTemplateParams{
+			Name:              template.Name,
+			Subject:           template.Subject,
+			HtmlBody:          template.HTMLBody,
+			TextBody:          template.TextBody,
+			BaseTemplateName:  template.BaseTemplateName,
+			RequiredVariables: template.RequiredVariables,
+			Version:           template.Version,
+		})
 
-	dbTemplate, err := queries.CreateTemplate(ctx, sqlc.CreateTemplateParams{
-		Name:              template.Name,
-		Subject:           template.Subject,
-		HtmlBody:          template.HTMLBody,
-		TextBody:          template.TextBody,
-		BaseTemplateName:  template.BaseTemplateName,
-		RequiredVariables: template.RequiredVariables,
-		Version:           template.Version,
+		if err != nil {
+			return fmt.Errorf("failed to create template: %w", err)
+		}
+
+		template.CreatedAt = dbTemplate.CreatedAt
+		template.UpdatedAt = dbTemplate.UpdatedAt
+
+		return nil
 	})
 
-	if err != nil {
-		return nil, fmt.Errorf("failed to create template: %w", err)
-	}
-
-	template.CreatedAt = dbTemplate.CreatedAt
-	template.UpdatedAt = dbTemplate.UpdatedAt
-
-	return template, nil
+	return template, err
 }
 
 // convertTemplateToDomain converts a sqlc Template to a domain Template

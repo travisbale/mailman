@@ -2,40 +2,20 @@ package postgres
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/travisbale/knowhere/db/postgres"
+	"github.com/travisbale/mailman/internal/db/postgres/internal/sqlc"
 )
 
-// DB wraps the PostgreSQL connection pool
-type DB struct {
-	pool *pgxpool.Pool
-}
+// DB is a type alias for the generic knowhere DB with sqlc.Queries
+type DB = postgres.DB[*sqlc.Queries]
 
-// NewDB creates a new database connection with the given connection string
-func NewDB(ctx context.Context, connString string) (*DB, error) {
-	pool, err := pgxpool.New(ctx, connString)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create connection pool: %w", err)
+// NewDB creates a new database connection pool
+func NewDB(ctx context.Context, databaseURL string) (*DB, error) {
+	// Wrap sqlc.New to satisfy the generic constructor signature
+	queries := func(d any) *sqlc.Queries {
+		return sqlc.New(d.(sqlc.DBTX))
 	}
 
-	// Test connection
-	if err := pool.Ping(ctx); err != nil {
-		pool.Close()
-		return nil, fmt.Errorf("failed to ping database: %w", err)
-	}
-
-	return &DB{
-		pool: pool,
-	}, nil
-}
-
-// Close closes the database connection pool
-func (db *DB) Close() {
-	db.pool.Close()
-}
-
-// Pool returns the underlying connection pool
-func (db *DB) Pool() *pgxpool.Pool {
-	return db.pool
+	return postgres.NewDB(ctx, databaseURL, queries, nil)
 }

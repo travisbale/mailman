@@ -19,7 +19,7 @@ type Renderer struct {
 	db TemplateDB
 }
 
-// New creates a new HTML renderer.
+// New creates a new HTML renderer
 func New(db TemplateDB) *Renderer {
 	return &Renderer{
 		db: db,
@@ -33,7 +33,6 @@ func (r *Renderer) Render(ctx context.Context, templateName string, variables ma
 		return nil, err
 	}
 
-	// Fail fast if client missing required variables (before queueing)
 	if err := validateTemplate(tmpl, variables); err != nil {
 		return nil, err
 	}
@@ -128,7 +127,6 @@ func (r *Renderer) renderTextWithBase(ctx context.Context, tmpl *email.Template,
 }
 
 // loadTemplateChain recursively loads all templates in the inheritance chain
-// Returns templates in order: [child, parent, grandparent, ...]
 func (r *Renderer) loadTemplateChain(ctx context.Context, tmpl *email.Template, extract func(*email.Template) string) ([]string, error) {
 	result := []string{extract(tmpl)}
 
