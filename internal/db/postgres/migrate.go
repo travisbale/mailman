@@ -3,8 +3,8 @@ package postgres
 import (
 	"embed"
 
-	"github.com/travisbale/knowhere/db"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	"github.com/travisbale/knowhere/db"
 )
 
 //go:embed migrations/*.sql
