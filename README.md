@@ -1,11 +1,26 @@
-# Mailman
+<p align="center">
+  <img src="mailman.png" alt="Mailman" width="250" />
+</p>
 
-[![CI](https://github.com/travisbale/mailman/actions/workflows/ci.yml/badge.svg)](https://github.com/travisbale/mailman/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/travisbale/mailman)](https://goreportcard.com/report/github.com/travisbale/mailman)
-[![Go Version](https://img.shields.io/badge/go-1.25-blue.svg)](https://go.dev/)
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+<p align="center">
+  <a href="https://github.com/travisbale/mailman/actions/workflows/ci.yml"><img src="https://github.com/travisbale/mailman/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://goreportcard.com/report/github.com/travisbale/mailman"><img src="https://goreportcard.com/badge/github.com/travisbale/mailman" alt="Go Report Card" /></a>
+  <img src="https://img.shields.io/badge/go-1.25-blue.svg" alt="Go Version" />
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License" /></a>
+</p>
 
-A high-performance email service built with Go that provides a gRPC API for sending templated emails at scale. Mailman uses PostgreSQL-backed job queuing with River to ensure reliable email delivery with built-in retry logic.
+Mailman is a high-performance email service built with Go that provides a gRPC API for sending templated emails at scale. Mailman uses PostgreSQL-backed job queuing with River to ensure reliable email delivery with built-in retry logic.
+
+## Architecture
+
+Mailman follows a clean architecture pattern with fail-fast template rendering:
+
+1. **API Layer**: gRPC server loads, validates, and renders templates before enqueueing jobs
+2. **Queue Layer**: River workers send pre-rendered email content asynchronously from PostgreSQL
+3. **Domain Layer**: Business logic for template rendering and validation
+4. **Infrastructure Layer**: Email clients (SendGrid/console) and database
+
+**Email Flow**: All email sending is asynchronous. The API renders templates immediately (returning any errors to the client), then enqueues the pre-rendered content. River workers handle the actual email delivery with automatic retries on failure. This fail-fast approach ensures clients receive template errors immediately rather than discovering them later in the queue.
 
 ## Features
 
@@ -125,7 +140,8 @@ Templates use Go template syntax (`{{.VariableName}}`) and are stored in the `em
 
 Templates can inherit from a base template for consistent branding. This allows you to define headers, footers, and styling once and reuse across all emails.
 
-**Step 1: Create a base template**
+##### Step 1: Create a base template
+
 ```bash
 ./bin/mailman template add \
   --name company_base \
@@ -134,6 +150,7 @@ Templates can inherit from a base template for consistent branding. This allows 
 ```
 
 **templates/base.html:**
+
 ```html
 <!DOCTYPE html>
 <html>
@@ -159,7 +176,8 @@ Templates can inherit from a base template for consistent branding. This allows 
 </html>
 ```
 
-**Step 2: Create content templates that inherit from the base**
+##### Step 2: Create content templates that inherit from the base
+
 ```bash
 ./bin/mailman template add \
   --name welcome_email \
@@ -170,6 +188,7 @@ Templates can inherit from a base template for consistent branding. This allows 
 ```
 
 **templates/welcome-content.html:**
+
 ```html
 {{define "content"}}
 <h2>Welcome {{.UserName}}!</h2>
@@ -180,6 +199,7 @@ Templates can inherit from a base template for consistent branding. This allows 
 The rendered email will include the full layout with header and footer from `company_base`. Templates can be nested multiple levels deep.
 
 **Safety Features:**
+
 - Circular references are validated when creating templates (fails immediately with clear error)
 - The CLI verifies the entire inheritance chain before saving
 - Runtime checks provide an additional safety layer
@@ -334,35 +354,6 @@ After modifying proto files or SQL queries:
 make protoc       # Generate protobuf/gRPC code
 make sqlc         # Generate database code from SQL
 ```
-
-### Project Structure
-
-```
-mailman/
-├── cmd/mailman/          # CLI entrypoint
-├── internal/
-│   ├── api/
-│   │   └── grpc/         # gRPC server implementation
-│   ├── app/              # Application setup and lifecycle
-│   ├── clients/          # Email delivery clients (SendGrid, console)
-│   ├── db/postgres/      # Database layer with migrations
-│   ├── mail/             # Domain models and template rendering service
-│   ├── pb/               # Generated protobuf code
-│   └── queue/river/      # River job queue and workers
-├── proto/                # Protocol buffer definitions
-└── sdk/                  # Public Go SDK for client applications
-```
-
-## Architecture
-
-Mailman follows a clean architecture pattern with fail-fast template rendering:
-
-1. **API Layer**: gRPC server loads, validates, and renders templates before enqueueing jobs
-2. **Queue Layer**: River workers send pre-rendered email content asynchronously from PostgreSQL
-3. **Domain Layer**: Business logic for template rendering and validation
-4. **Infrastructure Layer**: Email clients (SendGrid/console) and database
-
-**Email Flow**: All email sending is asynchronous. The API renders templates immediately (returning any errors to the client), then enqueues the pre-rendered content. River workers handle the actual email delivery with automatic retries on failure. This fail-fast approach ensures clients receive template errors immediately rather than discovering them later in the queue.
 
 ## License
 
