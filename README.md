@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://github.com/travisbale/mailman/actions/workflows/ci.yml"><img src="https://github.com/travisbale/mailman/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="https://goreportcard.com/report/github.com/travisbale/mailman"><img src="https://goreportcard.com/badge/github.com/travisbale/mailman" alt="Go Report Card" /></a>
-  <img src="https://img.shields.io/badge/go-1.25-blue.svg" alt="Go Version" />
+  <img src="https://img.shields.io/badge/go-1.26-blue.svg" alt="Go Version" />
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="License" /></a>
 </p>
 
@@ -34,7 +34,7 @@ Mailman follows a clean architecture pattern with fail-fast template rendering:
 
 ## Prerequisites
 
-- Go 1.24 or higher
+- Go 1.26 or higher
 - PostgreSQL 12 or higher
 - Docker (for code generation)
 - SendGrid API key (for production use)
