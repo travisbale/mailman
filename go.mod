@@ -8,7 +8,7 @@ require (
 	github.com/riverqueue/river v0.26.0
 	github.com/riverqueue/river/riverdriver/riverpgxv5 v0.26.0
 	github.com/sendgrid/sendgrid-go v3.16.1+incompatible
-	github.com/travisbale/knowhere v0.0.0-20251129204244-cc571b630f4a
+	github.com/travisbale/knowhere v0.0.0-20260410035545-1b06fe8a739a
 	github.com/urfave/cli/v2 v2.27.5
 	golang.org/x/sync v0.17.0
 	google.golang.org/grpc v1.68.0
