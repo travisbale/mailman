@@ -5,10 +5,14 @@ import (
 	"fmt"
 	"strings"
 
+	"net/http"
+	"time"
+
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 	"github.com/riverqueue/river/rivermigrate"
+
 	"github.com/travisbale/mailman/internal/api/grpc"
-	"github.com/travisbale/mailman/internal/api/http"
+	"github.com/travisbale/mailman/internal/api/rest"
 	"github.com/travisbale/mailman/internal/clients/console"
 	"github.com/travisbale/mailman/internal/clients/sendgrid"
 	"github.com/travisbale/mailman/internal/db/postgres"
@@ -109,10 +113,11 @@ func NewServer(ctx context.Context, config *Config) (*Server, error) {
 		return nil, fmt.Errorf("failed to initialize queue client: %w", err)
 	}
 
-	httpServer := http.NewServer(&http.Config{
-		Address: config.HTTPAddress,
-		DB:      db,
-	})
+	httpServer := &http.Server{
+		Addr:              config.HTTPAddress,
+		Handler:           &rest.Router{DB: db},
+		ReadHeaderTimeout: 5 * time.Second, // Prevents Slowloris attacks
+	}
 	grpcServer := grpc.NewServer(config.GRPCAddress, queueClient, templatesDB)
 
 	return &Server{
