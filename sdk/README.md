@@ -114,25 +114,6 @@ for _, template := range resp.Templates {
 }
 ```
 
-### Getting Email Job Status
-
-```go
-req := sdk.GetEmailStatusRequest{
-    JobID: "job-12345",
-}
-
-resp, err := client.GetEmailStatus(context.Background(), req)
-if err != nil {
-    log.Fatal(err)
-}
-
-fmt.Printf("Status: %s\n", resp.Status)
-fmt.Printf("Attempts: %d\n", resp.Attempts)
-if resp.LastError != "" {
-    fmt.Printf("Last error: %s\n", resp.LastError)
-}
-```
-
 ## Advanced Configuration
 
 ### Using Custom Dial Options

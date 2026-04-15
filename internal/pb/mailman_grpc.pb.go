@@ -21,7 +21,6 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	MailmanService_SendEmail_FullMethodName      = "/mailman.v1.MailmanService/SendEmail"
 	MailmanService_SendEmailBatch_FullMethodName = "/mailman.v1.MailmanService/SendEmailBatch"
-	MailmanService_GetEmailStatus_FullMethodName = "/mailman.v1.MailmanService/GetEmailStatus"
 	MailmanService_ListTemplates_FullMethodName  = "/mailman.v1.MailmanService/ListTemplates"
 )
 
@@ -35,8 +34,6 @@ type MailmanServiceClient interface {
 	SendEmail(ctx context.Context, in *SendEmailRequest, opts ...grpc.CallOption) (*SendEmailResponse, error)
 	// SendEmailBatch enqueues multiple emails in a single request.
 	SendEmailBatch(ctx context.Context, in *SendEmailBatchRequest, opts ...grpc.CallOption) (*SendEmailBatchResponse, error)
-	// GetEmailStatus retrieves the current status of an email job.
-	GetEmailStatus(ctx context.Context, in *GetEmailStatusRequest, opts ...grpc.CallOption) (*GetEmailStatusResponse, error)
 	// ListTemplates returns all available email templates.
 	ListTemplates(ctx context.Context, in *ListTemplatesRequest, opts ...grpc.CallOption) (*ListTemplatesResponse, error)
 }
@@ -69,16 +66,6 @@ func (c *mailmanServiceClient) SendEmailBatch(ctx context.Context, in *SendEmail
 	return out, nil
 }
 
-func (c *mailmanServiceClient) GetEmailStatus(ctx context.Context, in *GetEmailStatusRequest, opts ...grpc.CallOption) (*GetEmailStatusResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetEmailStatusResponse)
-	err := c.cc.Invoke(ctx, MailmanService_GetEmailStatus_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *mailmanServiceClient) ListTemplates(ctx context.Context, in *ListTemplatesRequest, opts ...grpc.CallOption) (*ListTemplatesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListTemplatesResponse)
@@ -99,8 +86,6 @@ type MailmanServiceServer interface {
 	SendEmail(context.Context, *SendEmailRequest) (*SendEmailResponse, error)
 	// SendEmailBatch enqueues multiple emails in a single request.
 	SendEmailBatch(context.Context, *SendEmailBatchRequest) (*SendEmailBatchResponse, error)
-	// GetEmailStatus retrieves the current status of an email job.
-	GetEmailStatus(context.Context, *GetEmailStatusRequest) (*GetEmailStatusResponse, error)
 	// ListTemplates returns all available email templates.
 	ListTemplates(context.Context, *ListTemplatesRequest) (*ListTemplatesResponse, error)
 	mustEmbedUnimplementedMailmanServiceServer()
@@ -118,9 +103,6 @@ func (UnimplementedMailmanServiceServer) SendEmail(context.Context, *SendEmailRe
 }
 func (UnimplementedMailmanServiceServer) SendEmailBatch(context.Context, *SendEmailBatchRequest) (*SendEmailBatchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendEmailBatch not implemented")
-}
-func (UnimplementedMailmanServiceServer) GetEmailStatus(context.Context, *GetEmailStatusRequest) (*GetEmailStatusResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetEmailStatus not implemented")
 }
 func (UnimplementedMailmanServiceServer) ListTemplates(context.Context, *ListTemplatesRequest) (*ListTemplatesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListTemplates not implemented")
@@ -182,24 +164,6 @@ func _MailmanService_SendEmailBatch_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MailmanService_GetEmailStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetEmailStatusRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(MailmanServiceServer).GetEmailStatus(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: MailmanService_GetEmailStatus_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MailmanServiceServer).GetEmailStatus(ctx, req.(*GetEmailStatusRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _MailmanService_ListTemplates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListTemplatesRequest)
 	if err := dec(in); err != nil {
@@ -232,10 +196,6 @@ var MailmanService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SendEmailBatch",
 			Handler:    _MailmanService_SendEmailBatch_Handler,
-		},
-		{
-			MethodName: "GetEmailStatus",
-			Handler:    _MailmanService_GetEmailStatus_Handler,
 		},
 		{
 			MethodName: "ListTemplates",

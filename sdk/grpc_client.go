@@ -146,45 +146,6 @@ func (c *GRPCClient) SendEmailBatch(ctx context.Context, req SendEmailBatchReque
 	}, nil
 }
 
-// GetEmailStatus retrieves the status of an email job
-func (c *GRPCClient) GetEmailStatus(ctx context.Context, req GetEmailStatusRequest) (*GetEmailStatusResponse, error) {
-	// Validate request
-	if err := req.Validate(); err != nil {
-		return nil, fmt.Errorf("invalid request: %w", err)
-	}
-
-	// Convert to protobuf request
-	pbReq := &pb.GetEmailStatusRequest{
-		JobId: req.JobID,
-	}
-
-	// Call gRPC service
-	pbResp, err := c.client.GetEmailStatus(ctx, pbReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get email status: %w", err)
-	}
-
-	// Convert response
-	resp := &GetEmailStatusResponse{
-		JobID:     pbResp.JobId,
-		Status:    convertEmailStatus(pbResp.Status),
-		Attempts:  pbResp.Attempts,
-		LastError: pbResp.LastError,
-	}
-
-	if pbResp.CreatedAt != nil {
-		createdAt := pbResp.CreatedAt.AsTime()
-		resp.CreatedAt = &createdAt
-	}
-
-	if pbResp.SentAt != nil {
-		sentAt := pbResp.SentAt.AsTime()
-		resp.SentAt = &sentAt
-	}
-
-	return resp, nil
-}
-
 // ListTemplates returns all available email templates
 func (c *GRPCClient) ListTemplates(ctx context.Context) (*ListTemplatesResponse, error) {
 	// Call gRPC service
@@ -207,22 +168,4 @@ func (c *GRPCClient) ListTemplates(ctx context.Context) (*ListTemplatesResponse,
 	return &ListTemplatesResponse{
 		Templates: templates,
 	}, nil
-}
-
-// convertEmailStatus converts protobuf EmailStatus to SDK EmailStatus
-func convertEmailStatus(pbStatus pb.EmailStatus) EmailStatus {
-	switch pbStatus {
-	case pb.EmailStatus_EMAIL_STATUS_QUEUED:
-		return EmailStatusQueued
-	case pb.EmailStatus_EMAIL_STATUS_SENDING:
-		return EmailStatusSending
-	case pb.EmailStatus_EMAIL_STATUS_SENT:
-		return EmailStatusSent
-	case pb.EmailStatus_EMAIL_STATUS_FAILED:
-		return EmailStatusFailed
-	case pb.EmailStatus_EMAIL_STATUS_SCHEDULED:
-		return EmailStatusScheduled
-	default:
-		return EmailStatusUnspecified
-	}
 }

@@ -27,10 +27,8 @@ func (r *SendEmailRequest) Validate() error {
 	return nil
 }
 
-// SendEmailResponse represents the response from sending an email
+// SendEmailResponse is returned after successfully enqueuing an email
 type SendEmailResponse struct {
-	// Currently empty as per proto definition
-	// Could add JobID in future for tracking
 }
 
 // SendEmailBatchRequest represents a batch email request
@@ -54,41 +52,6 @@ func (r *SendEmailBatchRequest) Validate() error {
 // SendEmailBatchResponse represents the batch email response
 type SendEmailBatchResponse struct {
 	Results []SendEmailResponse `json:"results"`
-}
-
-// GetEmailStatusRequest represents a request to get email status
-type GetEmailStatusRequest struct {
-	JobID string `json:"job_id"`
-}
-
-// Validate validates the get email status request
-func (r *GetEmailStatusRequest) Validate() error {
-	if r.JobID == "" {
-		return fmt.Errorf("job_id is required")
-	}
-	return nil
-}
-
-// EmailStatus represents the status of an email job
-type EmailStatus string
-
-const (
-	EmailStatusUnspecified EmailStatus = "UNSPECIFIED"
-	EmailStatusQueued      EmailStatus = "QUEUED"
-	EmailStatusSending     EmailStatus = "SENDING"
-	EmailStatusSent        EmailStatus = "SENT"
-	EmailStatusFailed      EmailStatus = "FAILED"
-	EmailStatusScheduled   EmailStatus = "SCHEDULED"
-)
-
-// GetEmailStatusResponse represents the response from getting email status
-type GetEmailStatusResponse struct {
-	JobID     string      `json:"job_id"`
-	Status    EmailStatus `json:"status"`
-	Attempts  int32       `json:"attempts"`
-	LastError string      `json:"last_error,omitempty"`
-	CreatedAt *time.Time  `json:"created_at,omitempty"`
-	SentAt    *time.Time  `json:"sent_at,omitempty"`
 }
 
 // EmailTemplate represents an email template

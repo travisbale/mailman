@@ -14,9 +14,6 @@ service MailmanService {
   // SendEmailBatch enqueues multiple emails in a single request.
   rpc SendEmailBatch(SendEmailBatchRequest) returns (SendEmailBatchResponse);
 
-  // GetEmailStatus retrieves the current status of an email job.
-  rpc GetEmailStatus(GetEmailStatusRequest) returns (GetEmailStatusResponse);
-
   // ListTemplates returns all available email templates.
   rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse);
 }
@@ -30,7 +27,6 @@ message SendEmailRequest {
   string to = 2;
 
   // variables contains data to populate the template
-  // Values can be strings, numbers, booleans, or nested objects
   map<string, string> variables = 3;
 
   // priority determines queue priority (0 = normal, higher = more urgent)
@@ -43,7 +39,7 @@ message SendEmailRequest {
   map<string, string> metadata = 6;
 }
 
-// SendEmailResponse contains the job ID for tracking.
+// SendEmailResponse is returned after successfully enqueuing an email.
 message SendEmailResponse {
 }
 
@@ -52,24 +48,9 @@ message SendEmailBatchRequest {
   repeated SendEmailRequest emails = 1;
 }
 
-// SendEmailBatchResponse returns job IDs for all emails.
+// SendEmailBatchResponse is returned after successfully enqueuing a batch.
 message SendEmailBatchResponse {
   repeated SendEmailResponse results = 1;
-}
-
-// GetEmailStatusRequest retrieves status for a specific email job.
-message GetEmailStatusRequest {
-  string job_id = 1;
-}
-
-// GetEmailStatusResponse contains the current state of an email job.
-message GetEmailStatusResponse {
-  string job_id = 1;
-  EmailStatus status = 2;
-  int32 attempts = 3;
-  string last_error = 4;
-  google.protobuf.Timestamp created_at = 5;
-  google.protobuf.Timestamp sent_at = 6;
 }
 
 // ListTemplatesRequest retrieves available email templates.
@@ -88,14 +69,4 @@ message EmailTemplate {
   string subject = 2;
   repeated string required_variables = 3;
   int32 version = 4;
-}
-
-// EmailStatus represents the current state of an email job.
-enum EmailStatus {
-  EMAIL_STATUS_UNSPECIFIED = 0;
-  EMAIL_STATUS_QUEUED = 1;
-  EMAIL_STATUS_SENDING = 2;
-  EMAIL_STATUS_SENT = 3;
-  EMAIL_STATUS_FAILED = 4;
-  EMAIL_STATUS_SCHEDULED = 5;
 }
