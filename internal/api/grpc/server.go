@@ -1,37 +1,43 @@
 package grpc
 
 import (
+	"context"
 	"fmt"
 	"net"
 
-	"github.com/travisbale/mailman/internal/db/postgres"
+	"github.com/travisbale/mailman/internal/email"
 	"github.com/travisbale/mailman/internal/pb"
 	"github.com/travisbale/mailman/internal/queue/river"
 	"google.golang.org/grpc"
 )
 
+type templatesDB interface {
+	List(ctx context.Context) ([]*email.Template, error)
+}
+
 // Server implements the MailmanService gRPC service
 type Server struct {
-	emailHandler *EmailHandler
-	templatesDB  *postgres.TemplatesDB
-	grpcServer   *grpc.Server
-	address      string
+	pb.UnimplementedMailmanServiceServer
+	jobQueue    *river.JobQueue
+	templatesDB templatesDB
+	grpcServer  *grpc.Server
+	address     string
 }
 
 // NewServer creates a new gRPC server
-func NewServer(address string, queueClient *river.JobQueue, templatesDB *postgres.TemplatesDB) *Server {
+func NewServer(address string, queueClient *river.JobQueue, templatesDB templatesDB) *Server {
 	grpcServer := grpc.NewServer()
 
-	emailHandler := NewEmailHandler(queueClient)
-
-	pb.RegisterMailmanServiceServer(grpcServer, emailHandler)
-
-	return &Server{
-		emailHandler: emailHandler,
-		templatesDB:  templatesDB,
-		grpcServer:   grpcServer,
-		address:      address,
+	server := &Server{
+		jobQueue:    queueClient,
+		templatesDB: templatesDB,
+		grpcServer:  grpcServer,
+		address:     address,
 	}
+
+	pb.RegisterMailmanServiceServer(grpcServer, server)
+
+	return server
 }
 
 // ListenAndServe starts the gRPC server

@@ -13,7 +13,6 @@ type Config struct {
 	SendGridAPIKey string
 	FromAddress    string
 	FromName       string
-	Environment    string
 }
 
 // config is the global configuration populated by CLI flags
@@ -28,6 +27,5 @@ func (c *Config) ToAppConfig() *app.Config {
 		SendGridAPIKey: c.SendGridAPIKey,
 		FromAddress:    c.FromAddress,
 		FromName:       c.FromName,
-		Environment:    app.ParseEnvironment(c.Environment),
 	}
 }

@@ -7,7 +7,7 @@ import (
 )
 
 // validateSendEmailRequest validates the send email request
-func (s *EmailHandler) validateSendEmailRequest(req *pb.SendEmailRequest) error {
+func (s *Server) validateSendEmailRequest(req *pb.SendEmailRequest) error {
 	if req.TemplateId == "" {
 		return fmt.Errorf("template_id is required")
 	}

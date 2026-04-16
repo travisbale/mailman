@@ -45,8 +45,8 @@ jobs:
       - name: Verify binary works
         run: ./bin/mailman version
 
-  test:
-    name: Test
+  unit:
+    name: Unit Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -58,8 +58,24 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Run tests with race detector
-        run: go test -v -race -timeout 5m ./...
+      - name: Run unit tests
+        run: make unit
+
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run integration tests
+        run: make integration
 
   security:
     name: Security Scan
@@ -181,7 +197,6 @@ jobs:
         env:
           DATABASE_URL: postgres://mailman:test_password@localhost:5432/mailman_test?sslmode=disable
           GRPC_ADDRESS: :50051
-          ENVIRONMENT: development
         run: |
           # Start service in background (migrations auto-apply on startup)
           timeout 10s ./bin/mailman start || true

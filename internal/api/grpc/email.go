@@ -9,24 +9,9 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type jobQueue interface {
-	EnqueueEmailJob(ctx context.Context, jobArgs *email.JobArgs) error
-}
-
-type EmailHandler struct {
-	pb.UnimplementedMailmanServiceServer
-	jobQueue jobQueue
-}
-
-func NewEmailHandler(queue jobQueue) *EmailHandler {
-	return &EmailHandler{
-		jobQueue: queue,
-	}
-}
-
 // SendEmail enqueues a single email for delivery
-func (h *EmailHandler) SendEmail(ctx context.Context, req *pb.SendEmailRequest) (*pb.SendEmailResponse, error) {
-	if err := h.validateSendEmailRequest(req); err != nil {
+func (s *Server) SendEmail(ctx context.Context, req *pb.SendEmailRequest) (*pb.SendEmailResponse, error) {
+	if err := s.validateSendEmailRequest(req); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid request: %v", err)
 	}
 
@@ -43,7 +28,7 @@ func (h *EmailHandler) SendEmail(ctx context.Context, req *pb.SendEmailRequest) 
 		params.ScheduledAt = &scheduledAt
 	}
 
-	err := h.jobQueue.EnqueueEmailJob(ctx, params)
+	err := s.jobQueue.EnqueueEmailJob(ctx, params)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to enqueue email: %v", err)
 	}
@@ -56,7 +41,7 @@ func (s *Server) SendEmailBatch(ctx context.Context, req *pb.SendEmailBatchReque
 	results := make([]*pb.SendEmailResponse, 0, len(req.Emails))
 
 	for _, emailReq := range req.Emails {
-		resp, err := s.emailHandler.SendEmail(ctx, emailReq)
+		resp, err := s.SendEmail(ctx, emailReq)
 		if err != nil {
 			return nil, err
 		}

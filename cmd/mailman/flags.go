@@ -66,13 +66,4 @@ var (
 		Value:       "Mailman",
 		Destination: &config.FromName,
 	}
-
-	// EnvironmentFlag defines the environment (development/production)
-	EnvironmentFlag = &cli.StringFlag{
-		Name:        "environment",
-		Usage:       "Environment (development/production)",
-		EnvVars:     []string{"ENVIRONMENT"},
-		Value:       "development",
-		Destination: &config.Environment,
-	}
 )

@@ -1,28 +1,7 @@
-.PHONY: help dev build proto clean test lint fmt
+.PHONY: help dev build proto clean test unit integration lint fmt
 
 # Version is derived from git tags
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
-
-# Build production binary
-build:
-	@echo "Building production binary..."
-	@CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w -X 'main.Version=$(VERSION)'" -o bin/mailman ./cmd/mailman
-
-# Build development binary (faster, includes debug symbols)
-dev:
-	@echo "Building development binary..."
-	@go build -ldflags="-X 'main.Version=$(VERSION)'" -o bin/mailman ./cmd/mailman
-
-# Run tests
-test:
-	@echo "Running tests..."
-	@go test -race -v ./...
-
-# Clean build artifacts
-clean:
-	@echo "Cleaning build artifacts..."
-	@rm -rf bin/
-	@rm -rf internal/pb/*.pb.go
 
 # Format code
 fmt:
@@ -33,10 +12,41 @@ fmt:
 		-not -path './internal/pb/*' \
 		-not -path './internal/db/*' )
 
+# Build development binary (faster, includes debug symbols)
+dev: fmt
+	@echo "Building development binary..."
+	@go build -ldflags="-X 'main.Version=$(VERSION)'" -o bin/mailman ./cmd/mailman
+	@echo "Build complete: bin/mailman"
+
+# Build production binary
+build: fmt
+	@echo "Building production binary..."
+	@CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w -X 'main.Version=$(VERSION)'" -o bin/mailman ./cmd/mailman
+	@echo "Build complete: bin/mailman"
+
+# Run unit tests only
+unit:
+	@echo "Running unit tests..."
+	@go test -race -v $$(go list ./... | grep -v '/test')
+
+# Run integration tests (requires Docker)
+integration:
+	@echo "Running integration tests..."
+	@go test -count=1 -timeout 5m -v ./test/...
+
+# Run all tests (unit + integration, requires Docker)
+test: unit integration
+
+# Clean build artifacts
+clean:
+	@echo "Cleaning build artifacts..."
+	@rm -rf bin/
+	@rm -rf internal/pb/*.pb.go
+
 # Lint code
 lint:
 	@echo "Linting code..."
-	@docker run -t --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:v2.6.0 golangci-lint run
+	@docker run -t --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:v2.11.4 golangci-lint run
 
 # Generate sqlc code (uses version from go.mod)
 sqlc:
@@ -57,20 +67,6 @@ protoc:
 		proto/mailman.proto
 	@echo "Protobuf code generated successfully"
 
-# Install dependencies
-deps:
-	@echo "Installing dependencies..."
-	@go mod download
-	@go mod tidy
-
-# Run database migrations up
-migrate-up:
-	@./bin/authsvc migrate up
-
-# Run database migrations down
-migrate-down:
-	@./bin/authsvc migrate down
-
 # Docker targets
 docker-build:
 	@echo "Building Docker image..."
@@ -80,11 +76,13 @@ docker-build:
 # Default target
 help:
 	@echo "Available targets:"
-	@echo "  make dev       - Build development binary with debug symbols"
-	@echo "  make build     - Build production binary (optimized)"
-	@echo "  make protoc    - Generate protobuf and gRPC code"
-	@echo "  make test      - Run tests with race detector"
-	@echo "  make lint      - Run golangci-lint"
-	@echo "  make fmt       - Format code with gofmt"
-	@echo "  make clean     - Remove build artifacts"
+	@echo "  make dev         - Build development binary with debug symbols"
+	@echo "  make build       - Build production binary (optimized)"
+	@echo "  make protoc      - Generate protobuf and gRPC code"
+	@echo "  make test        - Run all tests (unit + integration)"
+	@echo "  make unit        - Run unit tests only"
+	@echo "  make integration - Run integration tests (requires Docker)"
+	@echo "  make lint        - Run golangci-lint"
+	@echo "  make fmt         - Format code with gofmt"
+	@echo "  make clean       - Remove build artifacts"
 

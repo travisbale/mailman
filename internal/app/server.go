@@ -3,8 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"strings"
-
 	"net/http"
 	"time"
 
@@ -23,25 +21,6 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// Environment represents the application environment
-type Environment string
-
-const (
-	Development Environment = "development"
-	Production  Environment = "production"
-)
-
-// ParseEnvironment parses a string into an Environment type
-func ParseEnvironment(s string) Environment {
-	// Safe default prevents accidentally sending real emails during development
-	switch strings.ToLower(strings.TrimSpace(s)) {
-	case "production", "prod":
-		return Production
-	default:
-		return Development
-	}
-}
-
 // Config holds application configuration
 type Config struct {
 	DatabaseURL    string
@@ -50,7 +29,6 @@ type Config struct {
 	SendGridAPIKey string
 	FromAddress    string
 	FromName       string
-	Environment    Environment
 }
 
 type emailSender interface {
@@ -93,14 +71,14 @@ func NewServer(ctx context.Context, config *Config) (*Server, error) {
 
 	var emailSender emailSender
 
-	if config.Environment == Development || config.SendGridAPIKey == "" {
-		fmt.Println("Using console email client with JSON renderer (development mode)")
-		renderer := json.New()
-		emailSender = console.New(renderer)
-	} else {
+	if config.SendGridAPIKey != "" {
 		fmt.Println("Using SendGrid email client with HTML renderer")
 		renderer := html.New(templatesDB)
 		emailSender = sendgrid.New(config.SendGridAPIKey, renderer)
+	} else {
+		fmt.Println("Using console email client with JSON renderer")
+		renderer := json.New()
+		emailSender = console.New(renderer)
 	}
 
 	queueClient, err := river.NewJobQueue(db, river.WorkerConfig{

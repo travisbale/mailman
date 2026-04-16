@@ -23,7 +23,6 @@ var startCmd = &cli.Command{
 		SendGridAPIKeyFlag,
 		FromAddressFlag,
 		FromNameFlag,
-		EnvironmentFlag,
 	},
 	Action: func(c *cli.Context) error {
 		appConfig := config.ToAppConfig()
