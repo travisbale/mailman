@@ -27,22 +27,21 @@ type Service struct {
 func (s *Service) Send(ctx context.Context, req SendRequest) error {
 	tmpl, err := s.Templates.GetTemplate(ctx, req.TemplateName)
 	if err != nil {
-		return fmt.Errorf("template %q: %w", req.TemplateName, err)
+		return err
 	}
 
-	// Validate required variables before rendering
-	for _, required := range tmpl.Variables {
-		if _, ok := req.Variables[required]; !ok {
-			return fmt.Errorf("missing variable: %s", required)
+	for _, v := range tmpl.Variables {
+		if _, ok := req.Variables[v]; !ok {
+			return fmt.Errorf("%w: %s", ErrMissingVariable, v)
 		}
 	}
 
 	rendered, err := s.Renderer.Render(ctx, req.TemplateName, req.Variables)
 	if err != nil {
-		return fmt.Errorf("failed to render template: %w", err)
+		return err
 	}
 
-	jobArgs := &JobArgs{
+	if err := s.Queue.EnqueueEmailJob(ctx, &JobArgs{
 		To:          req.To,
 		From:        s.FromAddress,
 		FromName:    s.FromName,
@@ -51,10 +50,8 @@ func (s *Service) Send(ctx context.Context, req SendRequest) error {
 		TextBody:    rendered.TextBody,
 		Priority:    req.Priority,
 		ScheduledAt: req.ScheduledAt,
-	}
-
-	if err := s.Queue.EnqueueEmailJob(ctx, jobArgs); err != nil {
-		return fmt.Errorf("failed to enqueue email: %w", err)
+	}); err != nil {
+		return err
 	}
 
 	return nil

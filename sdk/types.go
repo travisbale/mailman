@@ -2,6 +2,7 @@ package sdk
 
 import (
 	"fmt"
+	"net/mail"
 	"time"
 )
 
@@ -12,7 +13,6 @@ type SendEmailRequest struct {
 	Variables   map[string]string `json:"variables,omitempty"`
 	Priority    int32             `json:"priority,omitempty"`
 	ScheduledAt *time.Time        `json:"scheduled_at,omitempty"`
-	Metadata    map[string]string `json:"metadata,omitempty"`
 }
 
 // Validate validates the send email request
@@ -23,7 +23,9 @@ func (r *SendEmailRequest) Validate() error {
 	if r.To == "" {
 		return fmt.Errorf("to is required")
 	}
-	// TODO: Add email format validation
+	if _, err := mail.ParseAddress(r.To); err != nil {
+		return fmt.Errorf("invalid email address: %s", r.To)
+	}
 	return nil
 }
 

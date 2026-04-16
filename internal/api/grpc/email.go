@@ -2,9 +2,11 @@ package grpc
 
 import (
 	"context"
+	"errors"
 
 	"github.com/travisbale/mailman/internal/email"
 	"github.com/travisbale/mailman/internal/pb"
+	"github.com/travisbale/mailman/sdk"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -12,8 +14,13 @@ import (
 // SendEmail validates the request, then delegates to the email service for
 // template rendering and job enqueueing.
 func (s *Server) SendEmail(ctx context.Context, req *pb.SendEmailRequest) (*pb.SendEmailResponse, error) {
-	if err := s.validateSendEmailRequest(req); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid request: %v", err)
+	sdkReq := sdk.SendEmailRequest{
+		TemplateID: req.TemplateId,
+		To:         req.To,
+	}
+
+	if err := sdkReq.Validate(); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	sendReq := email.SendRequest{
@@ -29,7 +36,14 @@ func (s *Server) SendEmail(ctx context.Context, req *pb.SendEmailRequest) (*pb.S
 	}
 
 	if err := s.emailService.Send(ctx, sendReq); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to send email: %v", err)
+		switch {
+		case errors.Is(err, email.ErrTemplateNotFound):
+			return nil, status.Errorf(codes.NotFound, "template not found: %s", req.TemplateId)
+		case errors.Is(err, email.ErrMissingVariable):
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		default:
+			return nil, status.Errorf(codes.Internal, "failed to send email")
+		}
 	}
 
 	return &pb.SendEmailResponse{}, nil
@@ -56,7 +70,7 @@ func (s *Server) SendEmailBatch(ctx context.Context, req *pb.SendEmailBatchReque
 func (s *Server) ListTemplates(ctx context.Context, req *pb.ListTemplatesRequest) (*pb.ListTemplatesResponse, error) {
 	templates, err := s.templatesDB.List(ctx)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to list templates: %v", err)
+		return nil, status.Errorf(codes.Internal, "failed to list templates")
 	}
 
 	pbTemplates := make([]*pb.EmailTemplate, 0, len(templates))

@@ -27,7 +27,7 @@ func (r *TemplatesDB) GetTemplate(ctx context.Context, name string) (*email.Temp
 		dbTemplate, err := q.GetTemplate(ctx, name)
 		if err != nil {
 			if err == pgx.ErrNoRows {
-				return fmt.Errorf("template not found: %s", name)
+				return fmt.Errorf("%w: %s", email.ErrTemplateNotFound, name)
 			}
 			return fmt.Errorf("failed to get template: %w", err)
 		}
