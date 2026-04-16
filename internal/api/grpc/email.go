@@ -62,10 +62,10 @@ func (s *Server) ListTemplates(ctx context.Context, req *pb.ListTemplatesRequest
 	pbTemplates := make([]*pb.EmailTemplate, 0, len(templates))
 	for _, t := range templates {
 		pbTemplates = append(pbTemplates, &pb.EmailTemplate{
-			Id:                t.Name,
-			Subject:           t.Subject,
-			RequiredVariables: t.RequiredVariables,
-			Version:           t.Version,
+			Id:        t.Name,
+			Subject:   t.Subject,
+			Variables: t.Variables,
+			Version:   t.Version,
 		})
 	}
 

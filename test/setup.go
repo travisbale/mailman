@@ -137,7 +137,7 @@ func seedTemplates(ctx context.Context, databaseURL string) error {
 
 	for _, t := range templates {
 		_, err := pool.Exec(ctx, `
-			INSERT INTO email_templates (name, subject, html_body, text_body, base_template_name, required_variables)
+			INSERT INTO email_templates (name, subject, html_body, text_body, base_template_name, variables)
 			VALUES ($1, $2, $3, $4, $5, $6)
 			ON CONFLICT (name) DO NOTHING
 		`, t.name, t.subject, t.htmlBody, t.textBody, t.baseTemplateName, t.vars)

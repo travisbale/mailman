@@ -9,13 +9,13 @@ import (
 )
 
 type EmailTemplate struct {
-	Name              string    `json:"name"`
-	Subject           string    `json:"subject"`
-	HtmlBody          string    `json:"html_body"`
-	TextBody          *string   `json:"text_body"`
-	BaseTemplateName  *string   `json:"base_template_name"`
-	RequiredVariables []string  `json:"required_variables"`
-	Version           int32     `json:"version"`
-	CreatedAt         time.Time `json:"created_at"`
-	UpdatedAt         time.Time `json:"updated_at"`
+	Name             string    `json:"name"`
+	Subject          string    `json:"subject"`
+	HtmlBody         string    `json:"html_body"`
+	TextBody         *string   `json:"text_body"`
+	BaseTemplateName *string   `json:"base_template_name"`
+	Variables        []string  `json:"variables"`
+	Version          int32     `json:"version"`
+	CreatedAt        time.Time `json:"created_at"`
+	UpdatedAt        time.Time `json:"updated_at"`
 }

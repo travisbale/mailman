@@ -46,7 +46,7 @@ func (r *Renderer) Render(ctx context.Context, templateName string, variables ma
 
 	for _, required := range tmpl.requiredVariables {
 		if _, ok := variables[required]; !ok {
-			return nil, fmt.Errorf("missing required variable: %s", required)
+			return nil, fmt.Errorf("missing variable: %s", required)
 		}
 	}
 

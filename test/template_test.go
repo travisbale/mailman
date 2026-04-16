@@ -30,7 +30,7 @@ func TestListTemplates(t *testing.T) {
 			version int32
 		}{
 			subject: tmpl.Subject,
-			vars:    tmpl.RequiredVariables,
+			vars:    tmpl.Variables,
 			version: tmpl.Version,
 		}
 	}

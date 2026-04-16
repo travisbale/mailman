@@ -172,9 +172,9 @@ func renderString(templateStr string, variables map[string]string) (string, erro
 
 // validateTemplate checks if all required variables are provided
 func validateTemplate(tmpl *email.Template, variables map[string]string) error {
-	for _, required := range tmpl.RequiredVariables {
+	for _, required := range tmpl.Variables {
 		if _, ok := variables[required]; !ok {
-			return fmt.Errorf("missing required variable: %s", required)
+			return fmt.Errorf("missing variable: %s", required)
 		}
 	}
 	return nil

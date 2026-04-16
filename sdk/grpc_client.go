@@ -156,10 +156,10 @@ func (c *GRPCClient) ListTemplates(ctx context.Context) (*ListTemplatesResponse,
 	templates := make([]EmailTemplate, len(pbResp.Templates))
 	for i, tmpl := range pbResp.Templates {
 		templates[i] = EmailTemplate{
-			ID:                tmpl.Id,
-			Subject:           tmpl.Subject,
-			RequiredVariables: tmpl.RequiredVariables,
-			Version:           tmpl.Version,
+			ID:        tmpl.Id,
+			Subject:   tmpl.Subject,
+			Variables: tmpl.Variables,
+			Version:   tmpl.Version,
 		}
 	}
 

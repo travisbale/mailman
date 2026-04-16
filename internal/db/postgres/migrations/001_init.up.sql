@@ -6,7 +6,7 @@ CREATE TABLE email_templates (
     html_body TEXT NOT NULL,
     text_body TEXT,
     base_template_name TEXT REFERENCES email_templates(name),
-    required_variables TEXT[] DEFAULT '{}',
+    variables TEXT[] DEFAULT '{}',
     version INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()

@@ -58,7 +58,7 @@ func TestSendEmailNonexistentTemplate(t *testing.T) {
 	assert.Contains(t, err.Error(), "does_not_exist")
 }
 
-func TestSendEmailMissingRequiredVariables(t *testing.T) {
+func TestSendEmailMissingVariables(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()

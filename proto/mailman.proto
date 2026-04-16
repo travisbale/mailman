@@ -64,6 +64,6 @@ message EmailTemplate {
   // id is the unique template identifier (e.g., "welcome_email", "password_reset")
   string id = 1;
   string subject = 2;
-  repeated string required_variables = 3;
+  repeated string variables = 3;
   int32 version = 4;
 }

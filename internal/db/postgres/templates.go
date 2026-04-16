@@ -64,13 +64,13 @@ func (r *TemplatesDB) List(ctx context.Context) ([]*email.Template, error) {
 func (r *TemplatesDB) Create(ctx context.Context, template *email.Template) (*email.Template, error) {
 	err := r.db.WithTransaction(ctx, func(q *sqlc.Queries) error {
 		dbTemplate, err := q.CreateTemplate(ctx, sqlc.CreateTemplateParams{
-			Name:              template.Name,
-			Subject:           template.Subject,
-			HtmlBody:          template.HTMLBody,
-			TextBody:          template.TextBody,
-			BaseTemplateName:  template.BaseTemplateName,
-			RequiredVariables: template.RequiredVariables,
-			Version:           template.Version,
+			Name:             template.Name,
+			Subject:          template.Subject,
+			HtmlBody:         template.HTMLBody,
+			TextBody:         template.TextBody,
+			BaseTemplateName: template.BaseTemplateName,
+			Variables:        template.Variables,
+			Version:          template.Version,
 		})
 
 		if err != nil {
@@ -89,14 +89,14 @@ func (r *TemplatesDB) Create(ctx context.Context, template *email.Template) (*em
 // convertTemplateToDomain converts a sqlc Template to a domain Template
 func convertTemplateToDomain(dbTemplate sqlc.EmailTemplate) *email.Template {
 	return &email.Template{
-		Name:              dbTemplate.Name,
-		Subject:           dbTemplate.Subject,
-		HTMLBody:          dbTemplate.HtmlBody,
-		TextBody:          dbTemplate.TextBody,
-		BaseTemplateName:  dbTemplate.BaseTemplateName,
-		RequiredVariables: dbTemplate.RequiredVariables,
-		Version:           dbTemplate.Version,
-		CreatedAt:         dbTemplate.CreatedAt,
-		UpdatedAt:         dbTemplate.UpdatedAt,
+		Name:             dbTemplate.Name,
+		Subject:          dbTemplate.Subject,
+		HTMLBody:         dbTemplate.HtmlBody,
+		TextBody:         dbTemplate.TextBody,
+		BaseTemplateName: dbTemplate.BaseTemplateName,
+		Variables:        dbTemplate.Variables,
+		Version:          dbTemplate.Version,
+		CreatedAt:        dbTemplate.CreatedAt,
+		UpdatedAt:        dbTemplate.UpdatedAt,
 	}
 }

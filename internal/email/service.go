@@ -31,9 +31,9 @@ func (s *Service) Send(ctx context.Context, req SendRequest) error {
 	}
 
 	// Validate required variables before rendering
-	for _, required := range tmpl.RequiredVariables {
+	for _, required := range tmpl.Variables {
 		if _, ok := req.Variables[required]; !ok {
-			return fmt.Errorf("missing required variable: %s", required)
+			return fmt.Errorf("missing variable: %s", required)
 		}
 	}
 

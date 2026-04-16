@@ -13,15 +13,15 @@ type SendRequest struct {
 
 // Template represents an email template stored in the database
 type Template struct {
-	Name              string
-	Subject           string
-	HTMLBody          string
-	TextBody          *string
-	BaseTemplateName  *string
-	RequiredVariables []string
-	Version           int32
-	CreatedAt         time.Time
-	UpdatedAt         time.Time
+	Name             string
+	Subject          string
+	HTMLBody         string
+	TextBody         *string
+	BaseTemplateName *string
+	Variables        []string
+	Version          int32
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 // JobArgs holds pre-rendered email content for the job queue.

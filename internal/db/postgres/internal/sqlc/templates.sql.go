@@ -10,19 +10,19 @@ import (
 )
 
 const createTemplate = `-- name: CreateTemplate :one
-INSERT INTO email_templates (name, subject, html_body, text_body, base_template_name, required_variables, version)
+INSERT INTO email_templates (name, subject, html_body, text_body, base_template_name, variables, version)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING name, subject, html_body, text_body, base_template_name, required_variables, version, created_at, updated_at
+RETURNING name, subject, html_body, text_body, base_template_name, variables, version, created_at, updated_at
 `
 
 type CreateTemplateParams struct {
-	Name              string   `json:"name"`
-	Subject           string   `json:"subject"`
-	HtmlBody          string   `json:"html_body"`
-	TextBody          *string  `json:"text_body"`
-	BaseTemplateName  *string  `json:"base_template_name"`
-	RequiredVariables []string `json:"required_variables"`
-	Version           int32    `json:"version"`
+	Name             string   `json:"name"`
+	Subject          string   `json:"subject"`
+	HtmlBody         string   `json:"html_body"`
+	TextBody         *string  `json:"text_body"`
+	BaseTemplateName *string  `json:"base_template_name"`
+	Variables        []string `json:"variables"`
+	Version          int32    `json:"version"`
 }
 
 func (q *Queries) CreateTemplate(ctx context.Context, arg CreateTemplateParams) (EmailTemplate, error) {
@@ -32,7 +32,7 @@ func (q *Queries) CreateTemplate(ctx context.Context, arg CreateTemplateParams) 
 		arg.HtmlBody,
 		arg.TextBody,
 		arg.BaseTemplateName,
-		arg.RequiredVariables,
+		arg.Variables,
 		arg.Version,
 	)
 	var i EmailTemplate
@@ -42,7 +42,7 @@ func (q *Queries) CreateTemplate(ctx context.Context, arg CreateTemplateParams) 
 		&i.HtmlBody,
 		&i.TextBody,
 		&i.BaseTemplateName,
-		&i.RequiredVariables,
+		&i.Variables,
 		&i.Version,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -51,7 +51,7 @@ func (q *Queries) CreateTemplate(ctx context.Context, arg CreateTemplateParams) 
 }
 
 const getTemplate = `-- name: GetTemplate :one
-SELECT name, subject, html_body, text_body, base_template_name, required_variables, version, created_at, updated_at
+SELECT name, subject, html_body, text_body, base_template_name, variables, version, created_at, updated_at
 FROM email_templates
 WHERE name = $1
 `
@@ -65,7 +65,7 @@ func (q *Queries) GetTemplate(ctx context.Context, name string) (EmailTemplate, 
 		&i.HtmlBody,
 		&i.TextBody,
 		&i.BaseTemplateName,
-		&i.RequiredVariables,
+		&i.Variables,
 		&i.Version,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -74,7 +74,7 @@ func (q *Queries) GetTemplate(ctx context.Context, name string) (EmailTemplate, 
 }
 
 const listTemplates = `-- name: ListTemplates :many
-SELECT name, subject, html_body, text_body, base_template_name, required_variables, version, created_at, updated_at
+SELECT name, subject, html_body, text_body, base_template_name, variables, version, created_at, updated_at
 FROM email_templates
 ORDER BY name, version DESC
 `
@@ -94,7 +94,7 @@ func (q *Queries) ListTemplates(ctx context.Context) ([]EmailTemplate, error) {
 			&i.HtmlBody,
 			&i.TextBody,
 			&i.BaseTemplateName,
-			&i.RequiredVariables,
+			&i.Variables,
 			&i.Version,
 			&i.CreatedAt,
 			&i.UpdatedAt,

@@ -88,8 +88,8 @@ var templateAddCmd = &cli.Command{
 			fmt.Printf("  Base template: %s\n", *created.BaseTemplateName)
 		}
 		fmt.Printf("  Version: %d\n", created.Version)
-		if len(created.RequiredVariables) > 0 {
-			fmt.Printf("  Required variables: %s\n", strings.Join(created.RequiredVariables, ", "))
+		if len(created.Variables) > 0 {
+			fmt.Printf("  Variables: %s\n", strings.Join(created.Variables, ", "))
 		}
 
 		return nil
@@ -135,13 +135,13 @@ func buildTemplate(c *cli.Context) (*email.Template, error) {
 	}
 
 	return &email.Template{
-		Name:              c.String("name"),
-		Subject:           c.String("subject"),
-		HTMLBody:          htmlBody,
-		TextBody:          textBodyPtr,
-		BaseTemplateName:  baseTemplatePtr,
-		RequiredVariables: vars,
-		Version:           int32(c.Int("version")),
+		Name:             c.String("name"),
+		Subject:          c.String("subject"),
+		HTMLBody:         htmlBody,
+		TextBody:         textBodyPtr,
+		BaseTemplateName: baseTemplatePtr,
+		Variables:        vars,
+		Version:          int32(c.Int("version")),
 	}, nil
 }
 
@@ -187,8 +187,8 @@ var templateListCmd = &cli.Command{
 			}
 
 			vars := "-"
-			if len(tmpl.RequiredVariables) > 0 {
-				vars = strings.Join(tmpl.RequiredVariables, ", ")
+			if len(tmpl.Variables) > 0 {
+				vars = strings.Join(tmpl.Variables, ", ")
 			}
 
 			if _, err := fmt.Fprintf(w, "%s\t%s\t%d\t%s\t%s\n",

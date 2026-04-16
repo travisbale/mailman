@@ -56,10 +56,10 @@ type SendEmailBatchResponse struct {
 
 // EmailTemplate represents an email template
 type EmailTemplate struct {
-	ID                string   `json:"id"`
-	Subject           string   `json:"subject"`
-	RequiredVariables []string `json:"required_variables"`
-	Version           int32    `json:"version"`
+	ID        string   `json:"id"`
+	Subject   string   `json:"subject"`
+	Variables []string `json:"variables"`
+	Version   int32    `json:"version"`
 }
 
 // ListTemplatesResponse represents the response from listing templates
