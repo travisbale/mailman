@@ -7,9 +7,12 @@ import (
 
 	"github.com/travisbale/mailman/internal/email"
 	"github.com/travisbale/mailman/internal/pb"
-	"github.com/travisbale/mailman/internal/queue/river"
 	"google.golang.org/grpc"
 )
+
+type emailService interface {
+	Send(ctx context.Context, req email.SendRequest) error
+}
 
 type templatesDB interface {
 	List(ctx context.Context) ([]*email.Template, error)
@@ -18,21 +21,21 @@ type templatesDB interface {
 // Server implements the MailmanService gRPC service
 type Server struct {
 	pb.UnimplementedMailmanServiceServer
-	jobQueue    *river.JobQueue
-	templatesDB templatesDB
-	grpcServer  *grpc.Server
-	address     string
+	emailService emailService
+	templatesDB  templatesDB
+	grpcServer   *grpc.Server
+	address      string
 }
 
 // NewServer creates a new gRPC server
-func NewServer(address string, queueClient *river.JobQueue, templatesDB templatesDB) *Server {
+func NewServer(address string, emailService emailService, templatesDB templatesDB) *Server {
 	grpcServer := grpc.NewServer()
 
 	server := &Server{
-		jobQueue:    queueClient,
-		templatesDB: templatesDB,
-		grpcServer:  grpcServer,
-		address:     address,
+		emailService: emailService,
+		templatesDB:  templatesDB,
+		grpcServer:   grpcServer,
+		address:      address,
 	}
 
 	pb.RegisterMailmanServiceServer(grpcServer, server)

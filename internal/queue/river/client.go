@@ -17,16 +17,9 @@ type JobQueue struct {
 	client *river.Client[pgx.Tx]
 }
 
-// WorkerConfig holds configuration for email workers
-type WorkerConfig struct {
-	EmailService emailService
-	FromAddress  string
-	FromName     string
-}
-
 // NewJobQueue creates a new River-based job queue client
-func NewJobQueue(db *postgres.DB, config WorkerConfig) (*JobQueue, error) {
-	emailWorker := NewSendEmailWorker(config)
+func NewJobQueue(db *postgres.DB, client EmailClient) (*JobQueue, error) {
+	emailWorker := NewSendEmailWorker(client)
 	workers := river.NewWorkers()
 	river.AddWorker(workers, emailWorker)
 
@@ -49,11 +42,10 @@ func NewJobQueue(db *postgres.DB, config WorkerConfig) (*JobQueue, error) {
 	}, nil
 }
 
-// EnqueueEmailJob enqueues an email job to the queue
+// EnqueueEmailJob enqueues a pre-rendered email job to the queue
 func (c *JobQueue) EnqueueEmailJob(ctx context.Context, jobArgs *email.JobArgs) error {
 	insertOpts := &river.InsertOpts{
 		MaxAttempts: 4, // Retries handle transient SendGrid API failures
-		Priority:    0,
 		Queue:       river.QueueDefault,
 		UniqueOpts: river.UniqueOpts{
 			ByArgs: true, // Prevents sending duplicate emails if client retries request

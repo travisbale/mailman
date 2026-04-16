@@ -8,41 +8,27 @@ import (
 	"github.com/travisbale/mailman/internal/email"
 )
 
-// emailService defines the interface for sending emails
-type emailService interface {
-	Send(ctx context.Context, email email.Email) error
+// EmailClient defines the interface for delivering pre-rendered emails
+type EmailClient interface {
+	Send(ctx context.Context, args email.JobArgs) error
 }
 
 // SendEmailWorker processes email sending jobs from the River queue
 type SendEmailWorker struct {
 	river.WorkerDefaults[email.JobArgs]
-	emailService emailService
-	fromAddress  string
-	fromName     string
+	client EmailClient
 }
 
 // NewSendEmailWorker creates a new email worker
-func NewSendEmailWorker(config WorkerConfig) *SendEmailWorker {
+func NewSendEmailWorker(client EmailClient) *SendEmailWorker {
 	return &SendEmailWorker{
-		emailService: config.EmailService,
-		fromAddress:  config.FromAddress,
-		fromName:     config.FromName,
+		client: client,
 	}
 }
 
-// Work processes a single email job by passing an Email struct to the client
+// Work delivers a pre-rendered email via the configured client
 func (w *SendEmailWorker) Work(ctx context.Context, job *river.Job[email.JobArgs]) error {
-	args := job.Args
-
-	email := email.Email{
-		To:           args.To,
-		From:         w.fromAddress,
-		FromName:     w.fromName,
-		TemplateName: args.TemplateName,
-		Variables:    args.Variables,
-	}
-
-	if err := w.emailService.Send(ctx, email); err != nil {
+	if err := w.client.Send(ctx, job.Args); err != nil {
 		return fmt.Errorf("failed to send email: %w", err)
 	}
 

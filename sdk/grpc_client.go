@@ -91,7 +91,6 @@ func (c *GRPCClient) SendEmail(ctx context.Context, req SendEmailRequest) (*Send
 		To:         req.To,
 		Variables:  req.Variables,
 		Priority:   req.Priority,
-		Metadata:   req.Metadata,
 	}
 
 	if req.ScheduledAt != nil {
@@ -122,7 +121,6 @@ func (c *GRPCClient) SendEmailBatch(ctx context.Context, req SendEmailBatchReque
 			To:         email.To,
 			Variables:  email.Variables,
 			Priority:   email.Priority,
-			Metadata:   email.Metadata,
 		}
 		if email.ScheduledAt != nil {
 			pbEmails[i].ScheduledAt = timestamppb.New(*email.ScheduledAt)

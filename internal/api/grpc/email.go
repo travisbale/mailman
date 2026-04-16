@@ -9,28 +9,27 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// SendEmail enqueues a single email for delivery
+// SendEmail validates the request, then delegates to the email service for
+// template rendering and job enqueueing.
 func (s *Server) SendEmail(ctx context.Context, req *pb.SendEmailRequest) (*pb.SendEmailResponse, error) {
 	if err := s.validateSendEmailRequest(req); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid request: %v", err)
 	}
 
-	params := &email.JobArgs{
+	sendReq := email.SendRequest{
 		To:           req.To,
 		TemplateName: req.TemplateId,
 		Variables:    req.Variables,
 		Priority:     req.Priority,
-		Metadata:     req.Metadata,
 	}
 
 	if req.ScheduledAt != nil {
 		scheduledAt := req.ScheduledAt.AsTime()
-		params.ScheduledAt = &scheduledAt
+		sendReq.ScheduledAt = &scheduledAt
 	}
 
-	err := s.jobQueue.EnqueueEmailJob(ctx, params)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to enqueue email: %v", err)
+	if err := s.emailService.Send(ctx, sendReq); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to send email: %v", err)
 	}
 
 	return &pb.SendEmailResponse{}, nil

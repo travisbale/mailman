@@ -103,31 +103,31 @@ func seedTemplates(ctx context.Context, databaseURL string) error {
 		htmlBody         string
 		textBody         *string
 		baseTemplateName *string
-		requiredVars     string // Postgres array literal
+		vars             string // Postgres array literal
 	}{
 		{
-			name:         "simple_template",
-			subject:      "Hello {{.Name}}!",
-			htmlBody:     "<p>Welcome, {{.Name}}!</p>",
-			requiredVars: "{Name}",
+			name:     "simple_template",
+			subject:  "Hello {{.Name}}!",
+			htmlBody: "<p>Welcome, {{.Name}}!</p>",
+			vars:     "{Name}",
 		},
 		{
-			name:         "base_layout",
-			subject:      "",
-			htmlBody:     `<html><body><header>Header</header>{{template "content" .}}<footer>Footer</footer></body></html>`,
-			requiredVars: "{}",
+			name:     "base_layout",
+			subject:  "",
+			htmlBody: `<html><body><header>Header</header>{{template "content" .}}<footer>Footer</footer></body></html>`,
+			vars:     "{}",
 		},
 		{
-			name:         "nested_template",
-			subject:      "Nested Hello {{.Name}}!",
-			htmlBody:     `{{define "content"}}<h1>Hi {{.Name}}!</h1>{{end}}`,
-			requiredVars: "{Name}",
+			name:     "nested_template",
+			subject:  "Nested Hello {{.Name}}!",
+			htmlBody: `{{define "content"}}<h1>Hi {{.Name}}!</h1>{{end}}`,
+			vars:     "{Name}",
 		},
 		{
-			name:         "multi_var_template",
-			subject:      "Welcome {{.Name}} from {{.Company}}!",
-			htmlBody:     "<p>{{.Name}} at {{.Company}}</p>",
-			requiredVars: "{Name,Company}",
+			name:     "multi_var_template",
+			subject:  "Welcome {{.Name}} from {{.Company}}!",
+			htmlBody: "<p>{{.Name}} at {{.Company}}</p>",
+			vars:     "{Name,Company}",
 		},
 	}
 
@@ -140,7 +140,7 @@ func seedTemplates(ctx context.Context, databaseURL string) error {
 			INSERT INTO email_templates (name, subject, html_body, text_body, base_template_name, required_variables)
 			VALUES ($1, $2, $3, $4, $5, $6)
 			ON CONFLICT (name) DO NOTHING
-		`, t.name, t.subject, t.htmlBody, t.textBody, t.baseTemplateName, t.requiredVars)
+		`, t.name, t.subject, t.htmlBody, t.textBody, t.baseTemplateName, t.vars)
 		if err != nil {
 			return fmt.Errorf("failed to seed template %s: %w", t.name, err)
 		}

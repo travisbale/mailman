@@ -2,13 +2,13 @@ package email
 
 import "time"
 
-// Email represents an email to be sent with template information
-type Email struct {
+// SendRequest represents a request to send an email, before rendering.
+type SendRequest struct {
 	To           string
-	From         string
-	FromName     string
 	TemplateName string
 	Variables    map[string]string
+	Priority     int32
+	ScheduledAt  *time.Time
 }
 
 // Template represents an email template stored in the database
@@ -24,14 +24,16 @@ type Template struct {
 	UpdatedAt         time.Time
 }
 
-// JobArgs holds the job arguments required to send an email
+// JobArgs holds pre-rendered email content for the job queue.
 type JobArgs struct {
-	To           string
-	TemplateName string
-	Variables    map[string]string
-	Priority     int32
-	Metadata     map[string]string
-	ScheduledAt  *time.Time
+	To          string
+	From        string
+	FromName    string
+	Subject     string
+	HTMLBody    string
+	TextBody    string
+	Priority    int32
+	ScheduledAt *time.Time
 }
 
 // Kind returns the unique identifier for this job type

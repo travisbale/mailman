@@ -31,10 +31,6 @@ type Config struct {
 	FromName       string
 }
 
-type emailSender interface {
-	Send(ctx context.Context, email email.Email) error
-}
-
 // Server represents the mailman application
 type Server struct {
 	config      *Config
@@ -42,7 +38,6 @@ type Server struct {
 	queueClient *river.JobQueue
 	httpServer  *http.Server
 	grpcServer  *grpc.Server
-	templatesDB *postgres.TemplatesDB
 }
 
 // NewServer creates and initializes a new application
@@ -69,26 +64,32 @@ func NewServer(ctx context.Context, config *Config) (*Server, error) {
 
 	templatesDB := postgres.NewTemplatesDB(db)
 
-	var emailSender emailSender
+	// Select email client and renderer based on configuration
+	var emailClient river.EmailClient
+	var emailRenderer email.Renderer
 
 	if config.SendGridAPIKey != "" {
 		fmt.Println("Using SendGrid email client with HTML renderer")
-		renderer := html.New(templatesDB)
-		emailSender = sendgrid.New(config.SendGridAPIKey, renderer)
+		emailClient = sendgrid.New(config.SendGridAPIKey)
+		emailRenderer = html.New(templatesDB)
 	} else {
 		fmt.Println("Using console email client with JSON renderer")
-		renderer := json.New()
-		emailSender = console.New(renderer)
+		emailClient = console.New()
+		emailRenderer = json.New()
 	}
 
-	queueClient, err := river.NewJobQueue(db, river.WorkerConfig{
-		EmailService: emailSender,
-		FromAddress:  config.FromAddress,
-		FromName:     config.FromName,
-	})
+	jobQueue, err := river.NewJobQueue(db, emailClient)
 	if err != nil {
 		db.Close()
 		return nil, fmt.Errorf("failed to initialize queue client: %w", err)
+	}
+
+	emailService := &email.Service{
+		Templates:   templatesDB,
+		Renderer:    emailRenderer,
+		Queue:       jobQueue,
+		FromAddress: config.FromAddress,
+		FromName:    config.FromName,
 	}
 
 	httpServer := &http.Server{
@@ -96,15 +97,14 @@ func NewServer(ctx context.Context, config *Config) (*Server, error) {
 		Handler:           &rest.Router{DB: db},
 		ReadHeaderTimeout: 5 * time.Second, // Prevents Slowloris attacks
 	}
-	grpcServer := grpc.NewServer(config.GRPCAddress, queueClient, templatesDB)
+	grpcServer := grpc.NewServer(config.GRPCAddress, emailService, templatesDB)
 
 	return &Server{
 		config:      config,
 		db:          db,
-		queueClient: queueClient,
+		queueClient: jobQueue,
 		httpServer:  httpServer,
 		grpcServer:  grpcServer,
-		templatesDB: templatesDB,
 	}, nil
 }
 

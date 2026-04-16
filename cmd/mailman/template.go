@@ -114,12 +114,12 @@ func buildTemplate(c *cli.Context) (*email.Template, error) {
 		textBody = string(textContent)
 	}
 
-	var requiredVars []string
+	var vars []string
 	if varsStr := c.String("vars"); varsStr != "" {
 		for v := range strings.SplitSeq(varsStr, ",") {
 			trimmed := strings.TrimSpace(v)
 			if trimmed != "" {
-				requiredVars = append(requiredVars, trimmed)
+				vars = append(vars, trimmed)
 			}
 		}
 	}
@@ -140,7 +140,7 @@ func buildTemplate(c *cli.Context) (*email.Template, error) {
 		HTMLBody:          htmlBody,
 		TextBody:          textBodyPtr,
 		BaseTemplateName:  baseTemplatePtr,
-		RequiredVariables: requiredVars,
+		RequiredVariables: vars,
 		Version:           int32(c.Int("version")),
 	}, nil
 }

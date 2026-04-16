@@ -34,9 +34,6 @@ message SendEmailRequest {
 
   // scheduled_at allows scheduling emails for future delivery
   google.protobuf.Timestamp scheduled_at = 5;
-
-  // metadata for tracking and debugging
-  map<string, string> metadata = 6;
 }
 
 // SendEmailResponse is returned after successfully enqueuing an email.
