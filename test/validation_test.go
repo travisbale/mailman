@@ -61,6 +61,23 @@ func TestSendEmailMissingRecipient(t *testing.T) {
 	assert.Contains(t, st.Message(), "to")
 }
 
+func TestSendEmailInvalidEmailFormat(t *testing.T) {
+	t.Parallel()
+
+	client := rawGRPCClient(t)
+
+	_, err := client.SendEmail(context.Background(), &pb.SendEmailRequest{
+		TemplateId: "simple_template",
+		To:         "notanemail",
+	})
+
+	require.Error(t, err)
+	st, ok := status.FromError(err)
+	require.True(t, ok)
+	assert.Equal(t, codes.InvalidArgument, st.Code())
+	assert.Contains(t, st.Message(), "invalid email address")
+}
+
 func TestSendEmailBatchPartialFailure(t *testing.T) {
 	t.Parallel()
 

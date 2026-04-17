@@ -42,6 +42,21 @@ func TestSendEmailWithMultipleVariables(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestSendEmailWithNestedTemplate(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	req := sdk.SendEmailRequest{
+		TemplateID: "nested_template",
+		To:         "user@example.com",
+		Variables:  map[string]string{"Name": "Alice"},
+	}
+
+	_, err := testClient.SendEmail(ctx, req)
+	require.NoError(t, err)
+}
+
 func TestSendEmailNonexistentTemplate(t *testing.T) {
 	t.Parallel()
 
